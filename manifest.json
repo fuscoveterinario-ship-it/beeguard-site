@@ -1,0 +1,26 @@
+{
+  "name": "Bee Guard — rastreador para colmeias",
+  "short_name": "Bee Guard",
+  "description": "Alerta na hora se a colmeia for mexida, localização no mapa e peso da balança.",
+  "lang": "pt-BR",
+  "id": "painel.html",
+  "start_url": "painel.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "icone.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icone.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

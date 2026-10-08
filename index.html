@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bee Guard – Rastreador antifurto para colmeias com alerta por SMS</title>
+<meta name="description" content="Bee Guard protege suas colmeias contra roubo: rastreador com GPS que avisa por SMS quando a caixa é mexida, mostra no mapa onde ela está e acompanha o peso e a produção de mel. Feito para apicultores do Brasil.">
+<link rel="canonical" href="https://beeguard.com.br/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Bee Guard">
+<meta property="og:title" content="Bee Guard – Segurança da sua colmeia">
+<meta property="og:description" content="Rastreador antifurto para colmeias: alerta por SMS quando a caixa é mexida, localização no mapa e controle de peso e produção de mel.">
+<meta property="og:url" content="https://beeguard.com.br/">
+<meta property="og:image" content="https://beeguard.com.br/icone.png">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bee Guard">
+<meta name="theme-color" content="#16130d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --noite: #16130d; --noite-2: #221d14; --creme: #fbf8f1; --card: #ffffff;
+  --ink: #2b2417; --muted: #6f6453; --line: #e9e0cf;
+  --mel: #f5c400; --mel-dark: #8a6f00; --ok: #2e7d32; --alerta: #c62828;
+  --sombra: 0 18px 50px rgba(43, 36, 23, .12);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--creme); color: var(--ink); font: 17px/1.6 "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent; }
+a, button { touch-action: manipulation; }
+img { max-width: 100%; height: auto; }
+h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
+p { text-wrap: pretty; }
+:focus-visible { outline: 3px solid var(--mel); outline-offset: 3px; border-radius: 8px; }
+.pular { position: absolute; left: 16px; top: -60px; background: var(--mel); color: #221a08; padding: 10px 16px; border-radius: 10px; font-weight: 700; z-index: 10; }
+.pular:focus { top: 12px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+
+/* topo */
+.topo { background: var(--noite); color: #fff; }
+.barra { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; }
+.marca { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; font-weight: 800; letter-spacing: .06em; }
+.marca img { width: 40px; height: 40px; border-radius: 10px; background: #fff; }
+.entrar { color: #fff; text-decoration: none; font-weight: 600; font-size: 15px; padding: 10px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+  transition: background-color .2s, border-color .2s; }
+.entrar:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.4); }
+
+.hero { display: grid; gap: 40px; padding-top: 28px; padding-bottom: 64px; align-items: center; }
+.selo { display: inline-block; color: var(--mel); font-weight: 600; font-size: 15px; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(40px, 9vw, 64px); font-weight: 800; }
+.hero h1 em { font-style: normal; color: var(--mel); }
+.hero p.sub { color: #d8cfbd; font-size: 19px; max-width: 34ch; margin: 18px 0 28px; }
+.acoes { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; padding: 0 26px; border: 0; border-radius: 14px;
+  font-family: inherit; font-weight: 700; font-size: 18px; line-height: 1; text-decoration: none; cursor: pointer;
+  transition: transform .15s ease, background-color .2s, box-shadow .2s; }
+.btn:active { transform: translateY(1px) scale(.98); }
+.btn-mel { background: var(--mel); color: #221a08; box-shadow: 0 10px 30px rgba(245,196,0,.25); }
+.btn-mel:hover { background: #ffd31a; box-shadow: 0 12px 36px rgba(245,196,0,.35); }
+.link-claro { color: #fff; font-weight: 600; text-underline-offset: 4px; padding: 12px 6px; }
+.link-claro:hover { color: var(--mel); }
+.nota { color: #a99e88; font-size: 14px; margin-top: 14px; }
+#baixar-passos { color: #d8cfbd; margin-top: 16px; max-width: 46ch; }
+#baixar-passos ol { margin: 0; padding-left: 22px; }
+#baixar-passos li { margin: 4px 0; }
+#baixar-passos b { color: #fff; }
+#baixar-passos .status { color: var(--mel); font-weight: 700; margin: 0; }
+[hidden] { display: none !important; }
+
+/* celular do hero, com a interface real do alerta */
+.cena { position: relative; display: grid; place-items: center; min-height: 460px; }
+.logo-contato { width: 180px; mix-blend-mode: multiply; }
+.cel { width: 270px; height: 520px; background: #0b0a07; border-radius: 44px; padding: 12px; box-shadow: 0 40px 90px rgba(0,0,0,.55), inset 0 0 0 2px #2c271d; transform: rotate(-4deg); }
+.tela { position: relative; height: 100%; border-radius: 34px; overflow: hidden; background: linear-gradient(#1f2638, #0e1119); color: #fff; }
+.tela .hora { text-align: center; font-size: 64px; font-weight: 300; margin-top: 54px; font-variant-numeric: tabular-nums; }
+.tela .data { text-align: center; font-size: 13px; color: #c8d0e0; margin-top: 30px; }
+.notif { position: absolute; left: 10px; right: 10px; top: 190px; background: rgba(250,246,236,.96); color: #1b160c; border-radius: 20px; padding: 12px; display: flex; gap: 10px;
+  box-shadow: 0 14px 30px rgba(0,0,0,.35); animation: chega .6s cubic-bezier(.2,.9,.3,1.3) .4s both; }
+.notif img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+.notif b { display: block; font-size: 15px; }
+.notif small { color: #6f6453; font-size: 12px; }
+.notif .app { display: flex; justify-content: space-between; font-size: 11px; color: #6f6453; font-weight: 600; letter-spacing: .04em; }
+.sms { position: absolute; left: 10px; right: 10px; top: 290px; background: #2a241a; border-radius: 18px; padding: 12px; font-size: 13px; line-height: 1.4;
+  animation: chega .6s cubic-bezier(.2,.9,.3,1.3) 1.1s both; }
+.sms span { color: var(--mel); font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px; }
+@keyframes chega { from { opacity: 0; transform: translateY(-16px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .notif, .sms { animation: none; } html { scroll-behavior: auto; } }
+
+/* seções */
+section.bloco { padding-top: 56px; padding-bottom: 56px; }
+.rotulo { color: var(--mel-dark); font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+.bloco h2 { font-size: clamp(32px, 6vw, 44px); font-weight: 800; max-width: 18ch; }
+.passos { list-style: none; padding: 0; margin: 40px 0 0; display: grid; gap: 28px; counter-reset: p; }
+.passos li { display: grid; grid-template-columns: 64px 1fr; gap: 18px; align-items: start; }
+.passos li::before { counter-increment: p; content: counter(p); display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px;
+  background: var(--noite); color: var(--mel); font-size: 28px; font-weight: 800; }
+.passos h3 { font-size: 21px; margin: 6px 0 4px; }
+.passos p { margin: 0; color: var(--muted); max-width: 60ch; }
+.dica { margin-top: 32px; padding: 18px 22px; background: #fff7d1; border-radius: 14px; color: #4a3d12; max-width: 70ch; }
+
+.recursos { display: grid; gap: 14px; margin-top: 40px; }
+.rec { background: var(--card); border-radius: 20px; padding: 26px 26px 28px; box-shadow: var(--sombra); }
+.rec svg { width: 34px; height: 34px; color: var(--mel-dark); }
+.rec h3 { font-size: 21px; margin: 14px 0 6px; }
+.rec p { margin: 0; color: var(--muted); }
+.rec.destaque { background: var(--noite); color: #fff; }
+.rec.destaque p { color: #d8cfbd; }
+.rec.destaque svg { color: var(--mel); }
+
+.acesso { background: var(--noite-2); color: #fff; border-radius: 28px; padding: 36px 28px; display: grid; gap: 24px; }
+.acesso h2 { color: #fff; font-size: clamp(28px, 5vw, 36px); }
+.acesso nav { display: grid; gap: 10px; }
+.acesso nav a { display: flex; justify-content: space-between; align-items: center; color: #fff; text-decoration: none; font-weight: 600; font-size: 18px;
+  padding: 18px 20px; border-radius: 14px; background: rgba(255,255,255,.06); transition: background-color .2s; }
+.acesso nav a:hover { background: rgba(255,255,255,.12); }
+.acesso nav a.principal { background: var(--mel); color: #221a08; }
+.acesso nav a.principal:hover { background: #ffd31a; }
+.acesso nav a span[aria-hidden] { font-size: 22px; }
+
+.contato { display: grid; gap: 18px; align-items: center; padding-top: 64px; padding-bottom: 64px; }
+.contato p { margin: 0; color: var(--muted); }
+.contato p a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; text-decoration-color: var(--mel); text-decoration-thickness: 2px; }
+.contato p a:hover { color: var(--mel-dark); }
+.contato .btn-zap { background: #1f7a3d; color: #fff; }
+.contato .btn-zap:hover { background: #23893f; }
+.rodape { border-top: 1px solid var(--line); padding-top: 24px; padding-bottom: max(32px, env(safe-area-inset-bottom)); color: var(--muted); font-size: 14px;
+  display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+.rodape a { color: inherit; }
+
+.btn-contorno { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+.btn-contorno:hover { box-shadow: inset 0 0 0 2px var(--mel); color: var(--mel); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lista-rec { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+.contato { padding-top: 32px; padding-bottom: 8px; }
+.depo { position: relative; margin: 28px 0 0; background: var(--card); border-radius: 22px; padding: 30px 28px 26px; box-shadow: var(--sombra); border-left: 6px solid var(--mel); }
+.depo { display: grid; gap: 20px; align-items: center; }
+.depo-foto { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 16px; display: block; }
+@media (min-width: 860px) { .depo { grid-template-columns: 300px 1fr; column-gap: 36px; } .depo-foto { grid-row: span 2; } .depo blockquote { font-size: 26px; align-self: end; } .depo figcaption { align-self: start; } }
+.depo blockquote { margin: 0; font-size: 21px; line-height: 1.45; font-weight: 500; text-wrap: pretty; }
+.depo figcaption { margin-top: 14px; color: var(--muted); font-size: 16px; }
+.depo figcaption b { color: var(--ink); }
+.depo-tag { position: absolute; top: -12px; right: 18px; background: var(--noite); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+.lista-rec li { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 18px; box-shadow: var(--sombra); font-size: 17px; line-height: 1.25; }
+.lista-rec svg { width: 28px; height: 28px; flex: none; color: var(--mel-dark); }
+.lista-rec li:first-child { background: var(--noite); color: #fff; }
+.lista-rec li:first-child svg { color: var(--mel); }
+.contato { text-align: center; justify-items: center; }
+.rodape-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+@media (min-width: 860px) {
+  .lista-rec { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .lista-rec li { padding: 22px 24px; font-size: 19px; }
+  .hero { grid-template-columns: 1.1fr .9fr; padding-top: 40px; padding-bottom: 90px; }
+  .recursos { grid-template-columns: repeat(6, 1fr); }
+  .rec { grid-column: span 2; }
+  .rec.largo { grid-column: span 3; }
+  .rec.inteiro { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; column-gap: 20px; align-items: center; }
+  .rec.inteiro svg { grid-row: span 2; }
+  .rec.inteiro h3 { margin-top: 0; }
+  .acesso { grid-template-columns: 1fr 1fr; align-items: center; padding: 48px; }
+  .passos { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .passos li { grid-template-columns: 1fr; align-content: start; }
+}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Organization","name":"Bee Guard","url":"https://beeguard.com.br/","logo":"https://beeguard.com.br/icone.png",
+ "contactPoint":{"@type":"ContactPoint","telephone":"+55-41-99676-7045","contactType":"sales","areaServed":"BR","availableLanguage":"Portuguese"},
+ "sameAs":["https://www.youtube.com/@beeguard-p2r"]}
+</script>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<div class="topo">
+  <header class="wrap barra">
+    <a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span translate="no">BEEGUARD</span></a>
+    <a class="entrar" href="painel.html">Meus rastreadores</a>
+  </header>
+
+  <div class="wrap hero">
+    <div>
+      <h1>Mexeram na sua colmeia? <em>Você fica sabendo na hora.</em></h1>
+      <p class="sub">Rastreador com GPS escondido dentro da caixa.</p>
+      <div class="acoes">
+        <button type="button" class="btn btn-mel" id="baixar-app">Baixar o app grátis</button>
+        <a class="btn btn-contorno" href="celular-teste.html">Testar com meu celular</a>
+      </div>
+      <div id="baixar-passos" hidden aria-live="polite"></div>
+    </div>
+    <div class="cena" aria-hidden="true">
+      <div class="cel"><div class="tela">
+        <div class="data">segunda-feira, 6 de outubro</div>
+        <div class="hora">03:12</div>
+        <div class="notif"><img src="icone.png" alt="" width="40" height="40"><div><div class="app"><span>BEE GUARD</span><span>agora</span></div><b>Caixa 07 foi mexida</b><small>Toque para ver no mapa</small></div></div>
+        <div class="sms"><span>SMS · Bee Guard</span>A Caixa 07 foi mexida às 03:12. Responda pelo link e veja no mapa.</div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<main id="conteudo">
+  <section class="wrap bloco" aria-labelledby="recursos">
+    <h2 id="recursos" class="sr">O que ele faz</h2>
+    <ul class="lista-rec">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 3.2-1.2 4.8-2 5.6h16c-.8-.8-2-2.4-2-5.6a6 6 0 0 0-6-6Z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></svg>
+        <b>Alerta na hora</b></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg>
+        <b>Localização no mapa</b></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14l-2-11H7Z"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0"/></svg>
+        <b>Peso e produção de mel</b></li>
+    </ul>
+    <figure class="depo">
+      <img class="depo-foto" src="henrique-depoimento.jpg" alt="Henrique Kutz olhando as colmeias do Apiário Kutz no meio da mata" width="720" height="900" loading="lazy">
+      <blockquote>“Roubo de caixa é o pesadelo de todo apicultor. Hoje as minhas colmeias têm o <span translate="no">Bee Guard</span>: se alguém mexer, o celular avisa na hora e eu vejo no mapa onde a caixa está. Durmo bem mais tranquilo.”</blockquote>
+      <figcaption><b>Henrique Kutz</b> · Apiário Kutz, Ortigueira (PR)</figcaption>
+    </figure>
+    <div class="contato">
+      <a class="btn btn-zap" href="https://wa.me/5541996767045" target="_blank" rel="noopener">Orçamento no WhatsApp</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap rodape">
+  <nav aria-label="Áreas do apicultor" class="rodape-links">
+    <a href="painel.html">Meus rastreadores</a>
+    <a href="apiarios.html">Meus apiários</a>
+    <a href="https://www.youtube.com/@beeguard-p2r" target="_blank" rel="noopener">YouTube</a>
+  </nav>
+  <span>© 2026 <span translate="no">Bee Guard</span></span>
+</footer>
+
+<script type="module">
+import { ligarBotao } from "./instalar.js";
+ligarBotao(document.getElementById("baixar-app"), document.getElementById("baixar-passos"));
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central de Monitoramento · Bee Guard</title>
+<link rel="icon" href="icone.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root {
+  --noite: #16130d; --painel: #201b13; --painel-2: #2a2419; --linha: #3a3224; --texto: #f3ecdf; --apagado: #a99e88;
+  --mel: #f5c400; --ok: #4caf50; --alerta: #ef4444; --aviso: #f59e0b; --off: #8a8270;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--noite); color: var(--texto); font: 15px/1.45 "Outfit", system-ui, sans-serif; }
+.demo { background: var(--mel); color: #221a08; text-align: center; font-weight: 700; font-size: 13px; padding: 6px 12px; }
+header { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--linha); flex-wrap: wrap; }
+header img { width: 36px; height: 36px; border-radius: 9px; background: #fff; }
+header h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: .02em; }
+header h1 small { display: block; font-weight: 500; font-size: 13px; color: var(--apagado); letter-spacing: 0; }
+.relogio { margin-left: auto; font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 600; }
+.ao-vivo { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ok); }
+.ao-vivo::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pisca 1.6s infinite; }
+@keyframes pisca { 50% { opacity: .25; } }
+
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 12px 18px; }
+.kpi { background: var(--painel); border: 1px solid var(--linha); border-radius: 14px; padding: 10px 14px; }
+.kpi span { display: block; color: var(--apagado); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.kpi b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.kpi.alerta b { color: var(--alerta); } .kpi.aviso b { color: var(--aviso); } .kpi.ok b { color: var(--ok); }
+.kpi.alerta.ativo { border-color: var(--alerta); box-shadow: 0 0 0 1px var(--alerta), 0 0 24px rgba(239,68,68,.25); }
+
+.grade { display: grid; grid-template-columns: 1fr 380px; gap: 12px; padding: 0 18px 18px; height: calc(100vh - 205px); min-height: 520px; }
+#map { border-radius: 16px; border: 1px solid var(--linha); height: 100%; background: #1d1a14; }
+.lado { display: grid; grid-template-rows: auto 1fr; gap: 12px; min-height: 0; }
+.caixa { background: var(--painel); border: 1px solid var(--linha); border-radius: 16px; padding: 14px; min-height: 0; display: flex; flex-direction: column; }
+.caixa h2 { font-size: 13px; margin: 0 0 10px; color: var(--apagado); text-transform: uppercase; letter-spacing: .06em; display: flex; justify-content: space-between; }
+.vazio { color: var(--apagado); font-size: 14px; padding: 6px 0; }
+.alerta-card { background: rgba(239,68,68,.1); border: 1px solid var(--alerta); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.alerta-card.roubo { animation: pulso 1.2s infinite; }
+@keyframes pulso { 50% { background: rgba(239,68,68,.22); } }
+.alerta-card b { display: block; font-size: 16px; }
+.alerta-card .sub { color: var(--apagado); font-size: 13px; }
+.alerta-card .linha { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; }
+.alerta-card .acoes { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+button { font: inherit; font-weight: 700; font-size: 13px; border: 0; border-radius: 9px; padding: 8px 12px; cursor: pointer; }
+.b-mel { background: var(--mel); color: #221a08; }
+.b-linha { background: transparent; color: var(--texto); box-shadow: inset 0 0 0 1px var(--linha); }
+.b-linha:hover { box-shadow: inset 0 0 0 1px var(--mel); }
+.feed { list-style: none; margin: 0; padding: 0; overflow: auto; }
+.feed li { display: grid; grid-template-columns: 48px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--linha); font-size: 14px; animation: entra .4s ease; }
+.feed time { color: var(--apagado); font-variant-numeric: tabular-nums; font-size: 13px; }
+.feed .t-alerta { color: var(--alerta); font-weight: 700; } .feed .t-aviso { color: var(--aviso); font-weight: 600; } .feed .t-ok { color: var(--ok); }
+@keyframes entra { from { opacity: 0; transform: translateY(-6px); } }
+
+.tabela { padding: 0 18px 24px; }
+.tabela h2 { font-size: 13px; color: var(--apagado); text-transform: uppercase; letter-spacing: .06em; margin: 6px 0 10px; }
+table { width: 100%; border-collapse: collapse; background: var(--painel); border: 1px solid var(--linha); border-radius: 14px; overflow: hidden; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--linha); }
+th { color: var(--apagado); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+tbody tr { cursor: pointer; } tbody tr:hover { background: var(--painel-2); }
+.st { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
+.st::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.st.ok { color: var(--ok); } .st.alerta { color: var(--alerta); } .st.aviso { color: var(--aviso); } .st.off { color: var(--off); }
+.num { font-variant-numeric: tabular-nums; }
+
+.pino { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.pino.ok { background: var(--ok); } .pino.aviso { background: var(--aviso); } .pino.off { background: var(--off); }
+.pino.alerta { background: var(--alerta); animation: radar 1.2s infinite; }
+@keyframes radar { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.7); } 100% { box-shadow: 0 0 0 18px rgba(239,68,68,0); } }
+.rotulo-cidade { background: transparent; border: 0; box-shadow: none; color: var(--apagado); font: 600 12px "Outfit", system-ui, sans-serif; padding: 0; }
+.rotulo-cidade::before { display: none; }
+.leaflet-popup-content { font: 14px/1.4 "Outfit", system-ui, sans-serif; }
+.nota { color: var(--apagado); font-size: 12px; padding: 0 18px 18px; }
+
+@media (max-width: 960px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .grade { grid-template-columns: 1fr; height: auto; }
+  #map { height: 380px; }
+  .lado { grid-template-rows: auto auto; }
+  .feed { max-height: 320px; }
+  .tabela { overflow-x: auto; }
+  .relogio { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="demo">DEMONSTRAÇÃO · dados fictícios · simulação acelerada</div>
+<header>
+  <img src="icone.png" alt="">
+  <h1>Central de Monitoramento Bee Guard<small>Todos os apiários e rastreadores em tempo real</small></h1>
+  <span class="ao-vivo">AO VIVO</span>
+  <span class="relogio" id="relogio">--:--:--</span>
+</header>
+
+<section class="kpis">
+  <div class="kpi ok"><span>Rastreadores online</span><b id="k-online">–</b></div>
+  <div class="kpi alerta" id="k-alerta-box"><span>Alertas abertos</span><b id="k-alerta">0</b></div>
+  <div class="kpi"><span>Apiários protegidos</span><b id="k-apiarios">–</b></div>
+  <div class="kpi aviso"><span>Sem comunicação</span><b id="k-off">–</b></div>
+  <div class="kpi aviso"><span>Bateria baixa</span><b id="k-bat">–</b></div>
+</section>
+
+<div class="grade">
+  <div id="map"></div>
+  <div class="lado">
+    <section class="caixa"><h2>Alertas ativos <button class="b-linha" id="simular" type="button">Simular roubo</button></h2><div id="alertas"></div></section>
+    <section class="caixa"><h2>Linha do tempo</h2><ul class="feed" id="feed"></ul></section>
+  </div>
+</div>
+
+<section class="tabela">
+  <h2>Rastreadores</h2>
+  <table>
+    <thead><tr><th>Situação</th><th>Rastreador</th><th>Apiário</th><th>Apicultor</th><th>Última mensagem</th><th>Bateria</th><th>Sinal</th><th>Peso</th></tr></thead>
+    <tbody id="linhas"></tbody>
+  </table>
+</section>
+<p class="nota">Página de demonstração: apicultores, apiários e eventos são fictícios. Na versão real, os dados vêm dos rastreadores instalados.</p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// Dados fictícios
+// ---------------------------------------------------------------------------
+const APIARIOS = [
+  { id: "a1", nome: "Apiário Boa Vista", cidade: "Ortigueira", apicultor: "João Pereira", lat: -24.168, lon: -50.928 },
+  { id: "a2", nome: "Apiário Monte Alegre", cidade: "Telêmaco Borba", apicultor: "Maria Santos", lat: -24.297, lon: -50.598 },
+  { id: "a3", nome: "Apiário Rio Tibagi", cidade: "Imbaú", apicultor: "Antônio Lima", lat: -24.452, lon: -50.752 },
+  { id: "a4", nome: "Apiário Pinhal", cidade: "Reserva", apicultor: "Maria Santos", lat: -24.648, lon: -50.846 },
+  { id: "a5", nome: "Apiário Serra Verde", cidade: "Bocaiúva do Sul", apicultor: "Carlos Ribeiro", lat: -25.172, lon: -49.098 },
+  { id: "a6", nome: "Apiário Capoeira", cidade: "Colombo", apicultor: "Carlos Ribeiro", lat: -25.262, lon: -49.205 },
+];
+const agora = () => Date.now();
+const min = (m) => agora() - m * 60000;
+const DEVS = [
+  ["BG-0101", "a1", "Caixa 1", 92, 21, 38.4, 3], ["BG-0102", "a1", "Caixa 4", 88, 19, null, 7], ["BG-0103", "a1", "Caixa 9", 79, 18, null, 12],
+  ["BG-0201", "a2", "Caixa 2", 95, 24, 41.2, 2], ["BG-0202", "a2", "Caixa 6", 12, 22, null, 9],
+  ["BG-0301", "a3", "Caixa 3", 84, 15, 35.9, 5], ["BG-0302", "a3", "Caixa 8", 81, 16, null, 14],
+  ["BG-0401", "a4", "Caixa 1", 77, 9, 33.1, 6], ["BG-0402", "a4", "Caixa 5", 64, 0, null, 312],
+  ["BG-0501", "a5", "Caixa 2", 90, 20, 39.7, 4], ["BG-0502", "a5", "Caixa 7", 86, 19, null, 8],
+  ["BG-0601", "a6", "Caixa 3", 93, 23, 36.5, 1],
+].map(([id, ap, caixa, bat, sinal, peso, ult], i) => {
+  const a = APIARIOS.find((x) => x.id === ap);
+  // espalha as caixas uns metros em volta do apiário
+  const ang = i * 2.1, r = 0.0006 + (i % 3) * 0.0003;
+  return { id, ap, caixa, bat, sinal, peso, ultima: min(ult), lat: a.lat + Math.sin(ang) * r, lon: a.lon + Math.cos(ang) * r, status: "ok" };
+});
+const ap = (d) => APIARIOS.find((a) => a.id === d.ap);
+const situacao = (d) => d.status === "alerta" ? "alerta" : agora() - d.ultima > 3 * 3600000 ? "off" : d.bat < 20 ? "aviso" : "ok";
+const TXT = { ok: "Protegido", alerta: "ALERTA", aviso: "Bateria baixa", off: "Sem comunicação" };
+
+// ---------------------------------------------------------------------------
+// Mapa
+// ---------------------------------------------------------------------------
+const map = L.map("map", { zoomControl: true, attributionControl: true });
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO",
+}).addTo(map);
+const marcadores = {};
+function icone(st) { return L.divIcon({ className: "", html: `<div class="pino ${st}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] }); }
+function popup(d) {
+  const a = ap(d);
+  return `<b>${d.caixa} · ${a.nome}</b><br>${a.cidade} · ${a.apicultor}<br>Bateria ${d.bat}% · ${quando(d.ultima)}${d.peso ? `<br>Peso ${d.peso.toLocaleString("pt-BR")} kg` : ""}`;
+}
+DEVS.forEach((d) => { marcadores[d.id] = L.marker([d.lat, d.lon], { icon: icone(situacao(d)) }).bindPopup(() => popup(d)).addTo(map); });
+APIARIOS.forEach((a) => L.tooltip({ permanent: true, direction: "right", offset: [12, 0], className: "rotulo-cidade" })
+  .setLatLng([a.lat, a.lon]).setContent(a.cidade).addTo(map));
+const enquadrar = () => map.fitBounds(L.latLngBounds(DEVS.map((d) => [d.lat, d.lon])), { padding: [40, 40] });
+enquadrar();
+
+// ---------------------------------------------------------------------------
+// Painel
+// ---------------------------------------------------------------------------
+const $ = (s) => document.querySelector(s);
+const hhmm = (t) => new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+function quando(t) {
+  const s = Math.round((agora() - t) / 1000);
+  if (s < 60) return "agora";
+  if (s < 3600) return `há ${Math.round(s / 60)} min`;
+  return `há ${Math.round(s / 3600)} h`;
+}
+function evento(tipo, texto) {
+  const li = document.createElement("li");
+  li.innerHTML = `<time>${hhmm(agora())}</time><span class="t-${tipo}">${texto}</span>`;
+  $("#feed").prepend(li);
+}
+let alertas = [];
+function desenhar() {
+  const sits = DEVS.map(situacao);
+  $("#k-online").textContent = `${sits.filter((s) => s !== "off").length}/${DEVS.length}`;
+  $("#k-alerta").textContent = alertas.length;
+  $("#k-alerta-box").classList.toggle("ativo", alertas.length > 0);
+  $("#k-apiarios").textContent = `${APIARIOS.filter((a) => !alertas.some((x) => ap(x.dev) === a)).length}/${APIARIOS.length}`;
+  $("#k-off").textContent = sits.filter((s) => s === "off").length;
+  $("#k-bat").textContent = sits.filter((s) => s === "aviso").length;
+  DEVS.forEach((d) => marcadores[d.id].setIcon(icone(situacao(d))));
+  const ordem = { alerta: 0, off: 1, aviso: 2, ok: 3 };
+  $("#linhas").innerHTML = [...DEVS].sort((x, y) => ordem[situacao(x)] - ordem[situacao(y)]).map((d) => {
+    const s = situacao(d), a = ap(d);
+    return `<tr data-id="${d.id}"><td><span class="st ${s}">${TXT[s]}</span></td><td>${d.id} · ${d.caixa}</td><td>${a.nome}<br><small style="color:var(--apagado)">${a.cidade}</small></td>
+      <td>${a.apicultor}</td><td class="num">${quando(d.ultima)}</td><td class="num">${d.bat}%</td><td class="num">${d.sinal ? d.sinal + "/31" : "—"}</td>
+      <td class="num">${d.peso ? d.peso.toLocaleString("pt-BR") + " kg" : "—"}</td></tr>`;
+  }).join("");
+  $("#alertas").innerHTML = alertas.length ? alertas.map((x) => {
+    const d = x.dev, a = ap(d);
+    return `<div class="alerta-card ${x.fase === "roubo" ? "roubo" : ""}">
+      <b>${x.fase === "roubo" ? "POSSÍVEL ROUBO" : "Caixa movimentada"} · ${d.caixa}</b>
+      <span class="sub">${a.nome} · ${a.cidade} · ${a.apicultor}</span>
+      <div class="linha"><span>Início ${hhmm(x.inicio)}</span><span>${x.fase === "roubo"
+        ? `Rastreando · ${x.km.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km do apiário`
+        : `Aguardando apicultor · ${Math.max(0, x.prazo - Math.round((agora() - x.inicio) / 1000))} s`}</span></div>
+      <div class="acoes"><button class="b-mel" data-ver="${d.id}">Ver no mapa</button>
+        <button class="b-linha" data-fechar="${d.id}">Marcar como atendido</button></div></div>`;
+  }).join("") : '<p class="vazio">Nenhum alerta aberto. Todos os apiários protegidos.</p>';
+}
+document.addEventListener("click", (e) => {
+  const ver = e.target.closest("[data-ver]")?.dataset.ver || e.target.closest("tr[data-id]")?.dataset.id;
+  if (ver) { const d = DEVS.find((x) => x.id === ver); map.setView([d.lat, d.lon], 14); marcadores[ver].openPopup(); }
+  const fechar = e.target.closest("[data-fechar]")?.dataset.fechar;
+  if (fechar) encerrar(fechar, "Atendido pela central");
+});
+
+// ---------------------------------------------------------------------------
+// Simulação: caixa mexida → sem resposta → possível roubo → caixa se movendo
+// ---------------------------------------------------------------------------
+let trilha, timers = [];
+function encerrar(id, motivo) {
+  const x = alertas.find((a) => a.dev.id === id);
+  if (!x) return;
+  timers.forEach(clearInterval); timers = [];
+  alertas = alertas.filter((a) => a !== x);
+  x.dev.status = "ok";
+  // volta a caixa para o apiário (a próxima simulação começa do lugar certo)
+  [x.dev.lat, x.dev.lon] = x.casa;
+  marcadores[x.dev.id].setLatLng(x.casa);
+  if (trilha) { trilha.remove(); trilha = null; }
+  evento("ok", `${x.dev.caixa} · ${ap(x.dev).nome}: ${motivo}`);
+  $("#simular").disabled = false;
+  desenhar();
+}
+function simular() {
+  if (alertas.length) return;
+  $("#simular").disabled = true;
+  const d = DEVS.find((x) => x.id === "BG-0502");
+  const casa = [d.lat, d.lon];
+  d.status = "alerta"; d.ultima = agora();
+  const x = { dev: d, inicio: agora(), fase: "movimento", prazo: 20, km: 0, casa };
+  alertas.push(x);
+  evento("alerta", `${d.caixa} · ${ap(d).nome}: caixa movimentada. SMS e notificação enviados ao apicultor.`);
+  map.setView(casa, 13);
+  if (trilha) trilha.remove();
+  trilha = L.polyline([casa], { color: "#ef4444", weight: 4, dashArray: "6 6" }).addTo(map);
+  desenhar();
+  timers.push(setInterval(() => {
+    if (x.fase !== "movimento") return;
+    if (agora() - x.inicio >= x.prazo * 1000) {
+      x.fase = "roubo";
+      evento("alerta", `${d.caixa} · ${ap(d).nome}: sem resposta. POSSÍVEL ROUBO. Contato secundário avisado, rastreamento a cada minuto.`);
+    }
+    desenhar();
+  }, 1000));
+  // depois do aviso de roubo, a caixa "anda" pela estrada
+  let passo = 0;
+  timers.push(setInterval(() => {
+    if (x.fase !== "roubo") return;
+    passo++;
+    d.lat += -0.0045 + Math.sin(passo / 2) * 0.0012;
+    d.lon += -0.0035;
+    d.ultima = agora();
+    trilha.addLatLng([d.lat, d.lon]);
+    marcadores[d.id].setLatLng([d.lat, d.lon]);
+    x.km = map.distance(casa, [d.lat, d.lon]) / 1000;
+    if (passo % 3 === 0) evento("aviso", `${d.caixa}: nova posição recebida · ${x.km.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km do apiário`);
+    map.panTo([d.lat, d.lon]);
+    desenhar();
+    if (passo >= 18) encerrar(d.id, "simulação encerrada (caixa localizada)");
+  }, 2500));
+}
+$("#simular").onclick = simular;
+
+// Linha do tempo inicial e relógio
+evento("ok", "Apiário Capoeira: rastreador BG-0601 enviou sinal de vida.");
+evento("aviso", "Apiário Monte Alegre: bateria baixa no BG-0202 (12%). Apicultor avisado.");
+evento("aviso", "Apiário Pinhal: BG-0402 sem comunicação há 5 h. Apicultor avisado.");
+evento("ok", "Apiário Boa Vista: Caixa 1 ganhou 1,2 kg hoje (florada).");
+setInterval(() => { $("#relogio").textContent = new Date().toLocaleTimeString("pt-BR"); }, 1000);
+setInterval(desenhar, 15000);
+desenhar();
+// começa a simulação sozinha depois de alguns segundos
+setTimeout(simular, 6000);
+</script>
+</body>
+</html>

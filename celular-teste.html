@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Celular como rastreador de teste</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bee Guard">
+<meta name="theme-color" content="#111111">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+</head>
+<body>
+<header><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Celular como rastreador de teste</small></span></a></header>
+<main>
+  <section class="card" id="login"><p class="msg">Carregando… (precisa de internet)</p></section>
+  <section class="card" id="config" hidden>
+    <h2>Transformar este celular em rastreador de teste</h2>
+    <p class="passos">Serve para testar e demonstrar o Bee Guard sem a placa. O celular faz o papel do rastreador:
+      se for mexido, o alerta vai por SMS para o telefone abaixo.</p>
+    <form id="f-tel">
+      <label>Telefone que recebe o alerta<input name="tel" type="tel" required placeholder="(41) 99999-0001"></label>
+      <button>Iniciar rastreador de teste</button>
+      <p class="erro" id="erro-tel"></p>
+    </form>
+    <details>
+      <summary>Usar um rastreador de teste já cadastrado (código e segredo)</summary>
+      <form id="f-config">
+        <label>Código do rastreador<input name="id" autocomplete="off" placeholder="CS-CELULAR"></label>
+        <label>Segredo do rastreador<input name="secret" autocomplete="off"></label>
+        <button class="secundario">Iniciar com código e segredo</button>
+      </form>
+    </details>
+  </section>
+  <section class="card" id="painel" hidden>
+    <h2 id="p-titulo">Rastreador ativo</h2>
+    <p class="passos">Deixe esta página aberta e a tela ligada. Coloque o celular dentro da caixa e mexa nela para testar o alerta.</p>
+    <div class="grid">
+      <div><span>Estado</span><b id="p-estado">vigiando</b></div>
+      <div><span>Modo</span><b id="p-modo">normal</b></div>
+      <div><span>GPS</span><b id="p-gps">aguardando…</b></div>
+      <div><span>Última resposta</span><b id="p-resp">—</b></div>
+      <div><span>Tempo de teste restante</span><b id="p-tempo">—</b></div>
+    </div>
+    <div id="map" hidden></div>
+    <div class="ajuda">
+      <p><b>Acompanhar no computador:</b> abra o link abaixo e entre com o mesmo celular (ou e-mail).
+        Quando houver alerta, o mapa e o trajeto aparecem lá (e no link do SMS).</p>
+      <p><a id="link-pc" href="painel.html" target="_blank" rel="noopener">beeguard.com.br/painel.html</a></p>
+      <button type="button" class="secundario mini" id="b-copiar">Copiar link</button>
+    </div>
+    <div class="ajuda" id="fim-teste" hidden>
+      <p><b>Teste encerrado.</b> O rastreador de teste desliga sozinho depois de 20 minutos para não gastar SMS.
+        Para testar de novo, toque em <b>Parar</b> e inicie outra vez.</p>
+    </div>
+    <button class="secundario" id="b-mexer">Simular movimento agora</button>
+    <button class="secundario" id="b-parar">Parar</button>
+    <h2>Registro</h2>
+    <ol id="log" class="passos" reversed></ol>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="module">
+import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js";
+import { INGEST_URL } from "./config.js";
+
+const store = {
+  get: (k, d = "") => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* sem armazenamento */ } },
+};
+
+let deviceId = store.get("cs-id"), secret = store.get("cs-secret");
+$("#f-config").id.value = deviceId;
+$("#f-config").secret.value = secret;
+
+const state = { mode: "normal", alertOpen: false, pos: null, watchUntil: 0, timers: [], wakeLock: null };
+
+function log(msg) {
+  const li = document.createElement("li");
+  li.textContent = `${new Date().toLocaleTimeString("pt-BR")} — ${msg}`;
+  $("#log").prepend(li);
+}
+
+async function hmacHex(key, msg) {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(msg)));
+  return Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function nextSeq() {
+  const seq = Math.max(Number(store.get(`cs-seq-${deviceId}`, "0")) + 1, Math.floor(Date.now() / 1000));
+  store.set(`cs-seq-${deviceId}`, String(seq));
+  return seq;
+}
+
+async function batteryMv() {
+  try { const b = await navigator.getBattery(); return Math.round(3300 + b.level * 900); } catch { return null; }
+}
+
+async function send(type) {
+  const ev = { seq: nextSeq(), t: type, ch: "teste", bat: await batteryMv(), sig: 99 };
+  if (state.pos) { ev.lat = state.pos.lat; ev.lon = state.pos.lon; }
+  const body = JSON.stringify({ events: [ev] });
+  try {
+    const res = await fetch(INGEST_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-device-id": deviceId, "x-signature": await hmacHex(secret, body) },
+      body,
+    });
+    const cfg = await res.json();
+    if (!res.ok) { log(`${type}: recusado (${cfg.error || res.status})`); return; }
+    state.mode = cfg.mode;
+    state.alertOpen = !!cfg.al;
+    $("#p-modo").textContent = cfg.mode === "roubo" ? "ROUBO (posição a cada 1 min)" : "normal";
+    $("#p-resp").textContent = new Date().toLocaleTimeString("pt-BR");
+    log(`${type} enviado${cfg.al ? " — alerta aberto" : ""}`);
+  } catch (e) {
+    log(`${type}: sem internet (${e.message})`);
+  }
+}
+
+// ---- Detecção de movimento: mesma regra do firmware ----
+// Confirma se inclinar mais de 12° ou se houver agitação em 2 de 3 segundos.
+let ref = null, lastA = null, activeSeconds = [], currentSecondActive = false, lastSecond = 0, cooldownUntil = 0;
+const angle = (a, b) => {
+  const dot = a.x * b.x + a.y * b.y + a.z * b.z;
+  const n = Math.hypot(a.x, a.y, a.z) * Math.hypot(b.x, b.y, b.z);
+  return n ? Math.acos(Math.max(-1, Math.min(1, dot / n))) * 180 / Math.PI : 0;
+};
+
+function onMotion(e) {
+  const g = e.accelerationIncludingGravity;
+  if (!g || g.x == null) return;
+  const a = { x: g.x, y: g.y, z: g.z };
+  if (!ref) ref = a;
+  if (lastA && Math.hypot(a.x - lastA.x, a.y - lastA.y, a.z - lastA.z) > 2.0) currentSecondActive = true;
+  lastA = a;
+  const sec = Math.floor(Date.now() / 1000);
+  if (sec !== lastSecond) {
+    activeSeconds = [...activeSeconds.slice(-2), currentSecondActive];
+    currentSecondActive = false;
+    lastSecond = sec;
+    const confirmed = angle(a, ref) > 12 || activeSeconds.filter(Boolean).length >= 2;
+    if (confirmed && Date.now() > cooldownUntil) motionDetected();
+    else if (!activeSeconds.some(Boolean) && state.mode === "normal" && !state.alertOpen) ref = a;
+  }
+}
+
+async function motionDetected() {
+  cooldownUntil = Date.now() + 60_000;
+  $("#p-estado").textContent = "MOVIMENTO!";
+  if (navigator.vibrate) navigator.vibrate(300);
+  await send("movimento");
+  state.watchUntil = Date.now() + 15 * 60_000;
+}
+
+// A cada minuto: se há alerta aberto ou modo roubo, manda a posição.
+function tick() {
+  if (state.mode === "roubo" || (state.alertOpen && Date.now() < state.watchUntil)) {
+    send("posicao");
+  } else {
+    $("#p-estado").textContent = "vigiando";
+  }
+}
+
+// Mapa com a posição atual do celular (e o caminho percorrido desde que começou).
+let mapa, marcador, caminho;
+function mostrarNoMapa(pos) {
+  if (!window.L) return;
+  const ponto = [pos.lat, pos.lon];
+  if (!mapa) {
+    show("#map");
+    mapa = L.map("map").setView(ponto, 16);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO" }).addTo(mapa);
+    marcador = L.marker(ponto).addTo(mapa).bindPopup("Este celular (rastreador de teste)");
+    caminho = L.polyline([ponto], { color: "#c62828" }).addTo(mapa);
+    return;
+  }
+  marcador.setLatLng(ponto);
+  caminho.addLatLng(ponto);
+  mapa.panTo(ponto);
+}
+
+$("#link-pc").textContent = `${location.host}/painel.html`;
+$("#link-pc").href = `${location.origin}/painel.html`;
+$("#b-copiar").onclick = async () => {
+  const link = `${location.origin}/painel.html`;
+  try { await navigator.clipboard.writeText(link); $("#b-copiar").textContent = "Link copiado ✓"; }
+  catch { prompt("Copie o link:", link); }
+};
+
+async function start(id, sec) {
+  deviceId = String(id || "").trim().toUpperCase();
+  secret = String(sec || "").trim();
+  if (!deviceId || !secret) { alert("Informe o código e o segredo."); return; }
+  store.set("cs-id", deviceId);
+  store.set("cs-secret", secret);
+
+  if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) {
+    if (await DeviceMotionEvent.requestPermission() !== "granted") { alert("Permita o acesso ao movimento."); return; }
+  }
+  window.addEventListener("devicemotion", onMotion);
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      (p) => {
+        const primeira = !state.pos;
+        state.pos = { lat: p.coords.latitude, lon: p.coords.longitude };
+        $("#p-gps").textContent = `±${Math.round(p.coords.accuracy)} m`;
+        mostrarNoMapa(state.pos);
+        // A primeira posição costuma chegar depois do "online": manda logo, sem esperar 10 min.
+        if (primeira) send("posicao");
+      },
+      (e) => { $("#p-gps").textContent = "sem permissão"; log(`GPS: ${e.message}`); },
+      { enableHighAccuracy: true, maximumAge: 10000 },
+    );
+  }
+  try { state.wakeLock = await navigator.wakeLock?.request("screen"); } catch { /* sem wake lock */ }
+
+  show("#config", false);
+  show("#painel");
+  $("#p-titulo").textContent = `Rastreador ${deviceId}`;
+  send("online");
+  state.timers.push(setInterval(tick, 60_000));
+  state.timers.push(setInterval(() => send("vida"), 10 * 60_000));
+  // O teste desliga sozinho em 20 minutos, para não gastar SMS à toa.
+  const fim = Date.now() + 20 * 60_000;
+  state.timers.push(setInterval(() => {
+    const falta = Math.max(0, Math.ceil((fim - Date.now()) / 60_000));
+    $("#p-tempo").textContent = `${falta} min`;
+    if (Date.now() >= fim) encerrarTeste();
+  }, 15_000));
+  $("#p-tempo").textContent = "20 min";
+}
+
+$("#f-config").onsubmit = (ev) => { ev.preventDefault(); start($("#f-config").id.value, $("#f-config").secret.value); };
+
+// Jeito simples: entra com o celular ou e-mail, informa o telefone e o sistema cria o rastreador de teste.
+// Link de demonstração pode trazer o telefone: celular-teste.html?tel=41999990001
+$("#f-tel").tel.value = new URLSearchParams(location.search).get("tel") || store.get("cs-tel");
+$("#f-tel").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const b = ev.target.querySelector("button");
+  const tel = normalizePhone(ev.target.tel.value);
+  if (!tel) { $("#erro-tel").textContent = "Telefone inválido. Use DDD + número, ex.: (41) 99999-0001."; return; }
+  b.disabled = true;
+  const { data, error } = await sb.rpc("colmeia_my_test_device", { p_phone: tel });
+  b.disabled = false;
+  if (error) { $("#erro-tel").textContent = errorText(error); return; }
+  $("#erro-tel").textContent = "";
+  store.set("cs-tel", ev.target.tel.value);
+  start(data.id, data.secret);
+};
+ensureLogin($("#login"), () => { show("#login", false); show("#config"); });
+$("#b-mexer").onclick = () => motionDetected();
+$("#b-parar").onclick = () => location.reload();
+
+function encerrarTeste() {
+  state.timers.forEach((t) => clearInterval(t));
+  state.timers = [];
+  window.removeEventListener("devicemotion", onMotion);
+  try { state.wakeLock?.release(); } catch { /* ignore */ }
+  $("#p-estado").textContent = "teste encerrado";
+  $("#p-tempo").textContent = "0 min";
+  log("teste encerrado depois de 20 minutos (para não gastar SMS à toa)");
+  $("#b-mexer").disabled = true;
+  show("#fim-teste");
+}
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible" && state.timers.length) {
+    try { state.wakeLock = await navigator.wakeLock?.request("screen"); } catch { /* ignore */ }
+  }
+});
+</script>
+</body>
+</html>
