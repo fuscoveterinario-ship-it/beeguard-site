@@ -74,6 +74,8 @@ tbody tr { cursor: pointer; } tbody tr:hover { background: var(--painel-2); }
 .pino.ok { background: var(--ok); } .pino.aviso { background: var(--aviso); } .pino.off { background: var(--off); }
 .pino.alerta { background: var(--alerta); animation: radar 1.2s infinite; }
 @keyframes radar { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.7); } 100% { box-shadow: 0 0 0 18px rgba(239,68,68,0); } }
+/* OpenStreetMap com as cores invertidas: mapa escuro, combinando com a central */
+.mapa-escuro { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.6); }
 .rotulo-cidade { background: transparent; border: 0; box-shadow: none; color: var(--apagado); font: 600 12px "Outfit", system-ui, sans-serif; padding: 0; }
 .rotulo-cidade::before { display: none; }
 .leaflet-popup-content { font: 14px/1.4 "Outfit", system-ui, sans-serif; }
@@ -160,8 +162,8 @@ const TXT = { ok: "Protegido", alerta: "ALERTA", aviso: "Bateria baixa", off: "S
 // Mapa
 // ---------------------------------------------------------------------------
 const map = L.map("map", { zoomControl: true, attributionControl: true });
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-  maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO",
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19, attribution: "© OpenStreetMap", className: "mapa-escuro",
 }).addTo(map);
 const marcadores = {};
 function icone(st) { return L.divIcon({ className: "", html: `<div class="pino ${st}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] }); }

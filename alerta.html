@@ -107,8 +107,8 @@ function render({ alert, device, track, balanca }) {
   $("#abrir-maps").href = mapsLink(last[0], last[1]);
   if (!map) {
     map = L.map("map");
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO",
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19, attribution: "© OpenStreetMap",
     }).addTo(map);
     line = L.polyline(pts, { color: "#c62828" }).addTo(map);
     marker = L.marker(last).addTo(map);

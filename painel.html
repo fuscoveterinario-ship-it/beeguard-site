@@ -225,7 +225,7 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
     show("#mapa-card");
     if (!map) {
       map = L.map("map");
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO" }).addTo(map);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
     }
     if (layer) layer.remove();
     layer = L.featureGroup(pts.map((d) => L.marker([d.last_lat, d.last_lon]).bindPopup(esc(d.hive_label || d.id)))).addTo(map);

@@ -177,7 +177,7 @@ function mostrarNoMapa(pos) {
   if (!mapa) {
     show("#map");
     mapa = L.map("map").setView(ponto, 16);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO" }).addTo(mapa);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(mapa);
     marcador = L.marker(ponto).addTo(mapa).bindPopup("Este celular (rastreador de teste)");
     caminho = L.polyline([ponto], { color: "#c62828" }).addTo(mapa);
     return;

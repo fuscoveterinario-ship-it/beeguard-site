@@ -80,7 +80,7 @@ async function carregar() {
       : "Localização aproximada (região de cerca de 1 km). O ponto exato das caixas não aparece neste link.";
     if (!map) {
       map = L.map("map");
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19, subdomains: "abcd", attribution: "© OpenStreetMap © CARTO" }).addTo(map);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
     }
     if (camada) camada.remove();
     camada = L.featureGroup(comLocal.map((d) => {
