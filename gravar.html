@@ -126,7 +126,13 @@ function etiqueta({ id, claim }) {
   if (window.QRCode) new QRCode($("#et-qr"), { text: url, width: 120, height: 120 });
   $("#etiqueta-card").hidden = false;
 }
-$("#imprimir").onclick = () => print();
+$("#imprimir").onclick = () => {
+  print();
+  try {
+    const ult = JSON.parse(sessionStorage.getItem("beeguard-nova-placa") || "null");
+    if (ult) sessionStorage.setItem("beeguard-nova-placa", JSON.stringify({ ...ult, impresso: true }));
+  } catch { /* sem armazenamento */ }
+};
 sb.auth.getSession().then(async ({ data }) => {
   if (!data.session) return;
   const { data: admin } = await sb.rpc("colmeia_is_admin");
@@ -138,7 +144,13 @@ sb.auth.getSession().then(async ({ data }) => {
   } catch { /* sem armazenamento */ }
 });
 $("#gerar").onclick = async () => {
-  if ($("#etiqueta-card").hidden === false && !confirm("Gerar outro código? Imprima antes a etiqueta que está na tela.")) return;
+  // Lembrete sempre: o código de ativação só aparece na hora em que é gerado.
+  let ult = null;
+  try { ult = JSON.parse(sessionStorage.getItem("beeguard-nova-placa") || "null"); } catch { /* sem armazenamento */ }
+  if (ult && !ult.impresso && !confirm(`ATENÇÃO: a etiqueta da ${ult.id} ainda não foi impressa.\n` +
+    "Se gerar outra placa agora, o código de ativação dela some da tela.\n\nGerar outra placa mesmo assim?")) return;
+  if (!confirm("Lembrete: depois de gravar a placa, IMPRIMA A ETIQUETA DA CAIXA.\n" +
+    "O código de ativação só aparece agora e não pode ser visto depois.\n\nGerar o código da placa nova?")) return;
   $("#gerar").disabled = true;
   const { data, error } = await sb.rpc("colmeia_admin_new_device");
   $("#gerar").disabled = false;
