@@ -19,16 +19,21 @@
 <main>
   <section class="card" id="login"><p class="msg">Carregando… (precisa de internet)</p></section>
   <nav class="barra" id="barra" hidden>
-    <div class="alternar" role="group" aria-label="Ver o painel por">
+    <a class="btn secundario" href="#" id="voltar" hidden>← Voltar ao mapa</a>
+    <div class="alternar" role="group" aria-label="Ver o painel por" id="ver-por">
       <span>Ver por:</span>
       <button type="button" data-ver="colmeia">Colmeia</button>
       <button type="button" data-ver="apiario">Apiário</button>
     </div>
-    <a class="btn secundario" href="apiarios.html">Meus apiários e colmeias</a>
+    <a class="btn secundario" href="#apiarios" id="ir-apiarios">Meus apiários e colmeias</a>
+    <a class="btn secundario" href="apiarios.html" id="gerenciar" hidden>Criar ou editar apiários e colmeias</a>
     <a class="btn secundario" href="ativar.html">Cadastrar novo rastreador</a>
     <button type="button" class="secundario" id="link-todos">Link de todos os apiários</button>
   </nav>
-  <section class="card" id="mapa-card" hidden><h2>Mapa dos apiários</h2><div id="map"></div></section>
+  <section class="card" id="mapa-card" hidden><h2>Mapa dos apiários</h2><div id="map"></div>
+    <p class="msg lembrete">🔔 <b>Lembrete:</b> faça de vez em quando o <b>teste de movimentação</b>: mexa uma caixa
+      e confira se o alerta chega no seu celular. <a href="celular-teste.html">Testar com o celular</a></p></section>
+  <h2 id="atencao-tit" hidden>⚠️ Precisa da sua atenção</h2>
   <section id="lista" hidden></section>
   <section class="card" id="app-card" hidden></section>
   <section id="producao" hidden></section>
@@ -145,9 +150,20 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
     </article>`;
   };
 
+  // Tela inicial: só o mapa (e as caixas reais em alerta). Detalhes dos apiários em "Meus apiários e colmeias".
+  const detalhe = location.hash === "#apiarios";
+  show("#voltar", detalhe); show("#ver-por", detalhe); show("#gerenciar", detalhe); show("#ir-apiarios", !detalhe);
+  const teste = (d) => d.id.startsWith("TESTE-");
+  const urgentes = devs.filter((d) => !teste(d) && (d.mode === "roubo" || statusDe(d, al)[0] === "alerta"));
+  show("#atencao-tit", !detalhe && urgentes.length > 0);
+
   const ordenadas = [...devs].sort((x, y) => natural(nomeApiario[x.apiary_id] || "", nomeApiario[y.apiary_id] || "")
     || natural(x.hive_label || x.id, y.hive_label || y.id));
-  if (ver === "apiario") {
+  if (!detalhe) {
+    $("#lista").innerHTML = urgentes.map(cartao).join("");
+    $("#producao").innerHTML = "";
+    show("#producao", false);
+  } else if (ver === "apiario") {
     $("#lista").innerHTML = aps.map((a) => {
       const ds = ordenadas.filter((d) => d.apiary_id === a.id);
       return `<div class="bloco-apiario">${resumo(a, ds)}${ds.map(cartao).join("")}
@@ -222,7 +238,8 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
   });
 
   const pts = devs.filter((d) => d.last_lat);
-  if (pts.length && window.L) {
+  show("#mapa-card", !detalhe && pts.length > 0);
+  if (!detalhe && pts.length && window.L) {
     show("#mapa-card");
     if (!map) {
       map = L.map("map");
@@ -244,6 +261,7 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
       .bindTooltip(g.map(rotulo).join("<hr>"),
         { permanent: true, direction: "top", offset: [-16, -14], className: "rotulo-mapa" })
       .bindPopup(g.map((d) => `${rotulo(d)}<br>Rastreador ${esc(d.id)}`).join("<hr>")))).addTo(map);
+    map.invalidateSize();  // o mapa pode ter ficado escondido (tela dos apiários)
     map.fitBounds(layer.getBounds(), { maxZoom: 16, padding: [30, 30] });
   }
 }
@@ -253,6 +271,8 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.onclick = () => {
   try { localStorage.setItem("beeguard-ver", ver); } catch { /* sem armazenamento */ }
   carregar();
 });
+
+addEventListener("hashchange", () => { scrollTo(0, 0); carregar(); });
 
 ensureLogin($("#login"), () => {
   show("#login", false);

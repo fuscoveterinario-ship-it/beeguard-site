@@ -106,3 +106,5 @@ label.check input { width: auto; margin: 0; }
 /* Nome da caixa e do apiário sobre cada marcador do mapa */
 .leaflet-tooltip.rotulo-mapa { font-size: 12px; line-height: 1.25; padding: 3px 7px; text-align: center; }
 .leaflet-tooltip.rotulo-mapa hr { border: 0; border-top: 1px solid #ddd; margin: 3px 0; }
+.lembrete { margin: 4px 0 0; }
+#atencao-tit { margin: 18px 4px 6px; }
