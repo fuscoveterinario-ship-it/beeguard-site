@@ -1,4 +1,4 @@
-{"versao": "0.6.1", "placa": "t-a7670", "chip": "ESP32", "commit": "5931ee2",
+{"versao": "0.7.0", "placa": "t-a7670", "chip": "ESP32", "commit": "c52410a",
  "arquivos": [{"arquivo": "bootloader.bin", "endereco": 4096},
               {"arquivo": "partitions.bin", "endereco": 32768},
               {"arquivo": "boot_app0.bin", "endereco": 57344},
