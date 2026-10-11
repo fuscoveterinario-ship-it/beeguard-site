@@ -228,14 +228,21 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
     }
     if (layer) layer.remove();
-    // Cada marcador com o nome da caixa e do apiário sempre à mostra.
-    layer = L.featureGroup(pts.map((d) => {
-      const caixa = esc(d.hive_label || d.id), ap = esc(nomeApiario[d.apiary_id] || "");
-      return L.marker([d.last_lat, d.last_lon])
-        .bindTooltip(ap ? `<b>${caixa}</b><br>${ap}` : `<b>${caixa}</b>`,
-          { permanent: true, direction: "top", offset: [-16, -14], className: "rotulo-mapa" })
-        .bindPopup(`<b>${caixa}</b>${ap ? "<br>" + ap : ""}<br>Rastreador ${esc(d.id)}`);
-    })).addTo(map);
+    // Cada marcador com o nome da caixa e do apiário sempre à mostra. Caixas a menos de 50 m
+    // umas das outras (mesmo lugar) ficam num marcador só, com todos os nomes.
+    const grupos = [];
+    for (const d of pts) {
+      const g = grupos.find((g) => map.distance([g[0].last_lat, g[0].last_lon], [d.last_lat, d.last_lon]) < 50);
+      if (g) g.push(d); else grupos.push([d]);
+    }
+    const rotulo = (d) => {
+      const ap = nomeApiario[d.apiary_id];
+      return `<b>${esc(d.hive_label || d.id)}</b>${ap ? "<br>" + esc(ap) : ""}`;
+    };
+    layer = L.featureGroup(grupos.map((g) => L.marker([g[0].last_lat, g[0].last_lon])
+      .bindTooltip(g.map(rotulo).join("<hr>"),
+        { permanent: true, direction: "top", offset: [-16, -14], className: "rotulo-mapa" })
+      .bindPopup(g.map((d) => `${rotulo(d)}<br>Rastreador ${esc(d.id)}`).join("<hr>")))).addTo(map);
     map.fitBounds(layer.getBounds(), { maxZoom: 16, padding: [30, 30] });
   }
 }
