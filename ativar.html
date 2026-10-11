@@ -38,10 +38,10 @@
         <label>Nome da nova colmeia<input id="a-col-nome" name="colNome" maxlength="40" placeholder="Ex.: Caixa 12"></label>
       </div>
 
-      <label class="check"><input type="checkbox" id="a-usar" name="usar" checked> <span id="a-usar-txt">Usar os telefones do apiário</span></label>
-      <div id="tel-proprio" class="sub" hidden>
-        <label>Telefone principal desta colmeia<input id="a-t1" name="phone1" type="tel" placeholder="(41) 99999-0001"></label>
-        <label>Telefone secundário desta colmeia<input id="a-t2" name="phone2" type="tel" placeholder="(41) 98888-0002"></label>
+      <div id="tel-proprio">
+        <p class="msg">Telefones que recebem os alertas desta caixa. Já vêm os do apiário: troque só se quiser outro número.</p>
+        <label>Telefone principal (recebe o 1º alerta)<input id="a-t1" name="phone1" type="tel" placeholder="(41) 99999-0001"></label>
+        <label>Telefone secundário<input id="a-t2" name="phone2" type="tel" placeholder="(41) 98888-0002"></label>
       </div>
       <button>Ativar</button>
       <p class="erro" id="erro-ativar"></p>
@@ -140,6 +140,12 @@ function tel(valor, obrigatorio) {
   return n;
 }
 
+const fmtTel = (t) => {
+  const d = String(t || "").replace(/\D/g, "").replace(/^55/, "");
+  return d.length >= 10 ? `(${d.slice(0, 2)}) ${d.slice(2, -4)}-${d.slice(-4)}` : "";
+};
+let apPreenchido = null;  // apiário cujos telefones estão nos campos
+
 function atualizarTela() {
   const apId = f.apiario.value;
   const novoAp = apId === NOVO;
@@ -153,22 +159,23 @@ function atualizarTela() {
   if ([...f.colmeia.options].some((o) => o.value === atual && !o.disabled)) f.colmeia.value = atual;
   else f.colmeia.value = ([...f.colmeia.options].find((o) => !o.disabled) || {}).value;
   show("#nova-colmeia", f.colmeia.value === NOVO);
+  // Apiário novo: os telefones são os do próprio cadastro do apiário (acima).
+  show("#tel-proprio", !novoAp);
   const ap = apiarios.find((a) => a.id === apId);
-  const temTel = novoAp || (ap && ap.primary_phone);
-  f.usar.disabled = !temTel;
-  if (!temTel) f.usar.checked = false;
-  $("#a-usar-txt").textContent = temTel ? "Usar os telefones do apiário" : "O apiário ainda não tem telefone: informe abaixo";
-  show("#tel-proprio", !f.usar.checked);
+  if (ap && apPreenchido !== ap.id) {
+    f.phone1.value = fmtTel(ap.primary_phone);
+    f.phone2.value = fmtTel(ap.secondary_phone);
+    apPreenchido = ap.id;
+  }
 }
 f.apiario.onchange = atualizarTela;
 f.colmeia.onchange = atualizarTela;
-f.usar.onchange = atualizarTela;
 
 ensureLogin($("#login"), async () => {
   show("#login", false);
   show("#passo-dados");
   const [{ data: aps }, { data: hs }, { data: devs }] = await Promise.all([
-    sb.from("colmeia_apiaries").select("id,name,city,primary_phone").order("name"),
+    sb.from("colmeia_apiaries").select("id,name,city,primary_phone,secondary_phone").order("name"),
     sb.from("colmeia_hives").select("id,apiary_id,label"),
     sb.from("colmeia_devices").select("id,hive_id"),
   ]);
@@ -186,12 +193,17 @@ f.onsubmit = async (ev) => {
   if (!$("#a-dev-l").hidden) deviceId = f.dev.value.trim().toUpperCase();
   f.querySelector("button").disabled = true;
   try {
-    const p1 = f.usar.checked ? null : tel(f.phone1.value, true);
-    const p2 = f.usar.checked ? null : tel(f.phone2.value, false);
     let apId = f.apiario.value;
+    // Mesmos telefones do apiário: a caixa segue o apiário (se o apiário trocar, ela troca junto).
+    let p1 = null, p2 = null;
+    if (apId !== NOVO) {
+      const ap = apiarios.find((a) => a.id === apId) || {};
+      const t1 = tel(f.phone1.value, true), t2 = tel(f.phone2.value, false);
+      if (t1 !== (ap.primary_phone || null) || t2 !== (ap.secondary_phone || null)) { p1 = t1; p2 = t2; }
+    }
     if (apId === NOVO) {
       const { data, error } = await sb.rpc("colmeia_save_apiary", { p_id: null, p_name: f.apNome.value,
-        p_city: f.apCidade.value, p_primary_phone: tel(f.apTel1.value, f.usar.checked), p_secondary_phone: tel(f.apTel2.value, false) });
+        p_city: f.apCidade.value, p_primary_phone: tel(f.apTel1.value, true), p_secondary_phone: tel(f.apTel2.value, false) });
       if (error) return erro(errorText(error));
       apId = data;
     }
