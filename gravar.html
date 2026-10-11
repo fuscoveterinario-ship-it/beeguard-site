@@ -121,6 +121,10 @@ function dados() {
 }
 
 let porta = null;
+// Só mostra placas (Espressif USB nativo, CH340/CH9102, CP210x) na lista do Chrome.
+const FILTROS = [{ usbVendorId: 0x303a }, { usbVendorId: 0x1a86 }, { usbVendorId: 0x10c4 }];
+const pedirPorta = () => navigator.serial.requestPort({ filters: FILTROS });
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function gravar(placa) {
   const base = `firmware/${placa}/`;
@@ -130,8 +134,8 @@ async function gravar(placa) {
     address: a.endereco,
     data: new Uint8Array(await (await fetch(base + a.arquivo, { cache: "no-store" })).arrayBuffer()),
   })));
-  estado("Escolha a placa na janela que abriu (normalmente aparece como <b>USB JTAG/serial</b> ou <b>USB Serial</b>).");
-  porta = await navigator.serial.requestPort();
+  estado("Escolha a placa na janela que abriu (aparece como <b>USB JTAG/serial debug unit</b>).");
+  porta = await pedirPorta();
   const transport = new Transport(porta, false);
   const terminal = { clean() {}, writeLine: (t) => log(t + "\n"), write: (t) => log(t) };
   const loader = new ESPLoader({ transport, baudrate: 460800, romBaudrate: 115200, terminal });
@@ -153,19 +157,32 @@ async function gravar(placa) {
     },
   });
   estado("Programa gravado. Reiniciando a placa…");
-  await loader.after("hard_reset", true);
+  await loader.after("hard_reset");
   await transport.disconnect();
 }
 
 // Fala com o programa da placa: espera "BEEGUARD READY" e manda o código e o segredo.
 async function configurar({ id, secret, apn, wifi }) {
-  if (!porta) porta = await navigator.serial.requestPort();
-  for (let i = 0; i < 20; i++) {  // depois de reiniciar, a porta USB demora um pouco para voltar
+  if (!porta) porta = await pedirPorta();
+  for (let i = 0; i < 30; i++) {  // depois de reiniciar, a porta USB some e volta
     try { await porta.open({ baudRate: 115200 }); break; } catch (e) {
-      if (i === 19) throw new Error("Não consegui falar com a placa. Aperte o botão RST da placa e clique em “Só configurar”.");
-      await new Promise((r) => setTimeout(r, 500));
+      if (i === 29) throw new Error("Não consegui falar com a placa. Aperte o botão RST da placa e clique em “Só configurar”.");
+      await espera(500);
+      // A placa voltou como uma porta "nova": pega a que o Chrome já tem permissão.
+      const ps = (await navigator.serial.getPorts()).filter((p) => FILTROS.some((f) => f.usbVendorId === p.getInfo().usbVendorId));
+      if (ps.length) porta = ps[ps.length - 1];
     }
   }
+  // Ao abrir a conexão, o Chrome pode deixar a placa presa em "reset" (sinais DTR/RTS).
+  // Solta os dois sinais e, para garantir, dá um reinício normal.
+  try {
+    await porta.setSignals({ dataTerminalReady: false, requestToSend: false });
+    await espera(100);
+    await porta.setSignals({ dataTerminalReady: false, requestToSend: true });
+    await espera(120);
+    await porta.setSignals({ dataTerminalReady: false, requestToSend: false });
+  } catch { /* placa sem esses sinais */ }
+  log("\n(conectado à placa, esperando a resposta…)\n");
   estado("Configurando o rastreador…");
   const enc = new TextEncoder(), dec = new TextDecoder();
   const writer = porta.writable.getWriter();
@@ -230,7 +247,7 @@ $("#so-config").onclick = async () => {
   $("#gravar").disabled = $("#so-config").disabled = true;
   try {
     if (porta) { try { await porta.close(); } catch { /* já fechada */ } }
-    porta = await navigator.serial.requestPort();
+    porta = await pedirPorta();
     await configurar(d);
   } catch (e) {
     estado(String(e.message || e), "erro");
