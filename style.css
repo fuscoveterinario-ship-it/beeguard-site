@@ -108,3 +108,8 @@ label.check input { width: auto; margin: 0; }
 .leaflet-tooltip.rotulo-mapa hr { border: 0; border-top: 1px solid #ddd; margin: 3px 0; }
 .lembrete { margin: 4px 0 0; }
 #atencao-tit { margin: 18px 4px 6px; }
+
+/* Meus apiários e colmeias: dois botões grandes (Produtividade / Apiários) */
+.abas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.abas .aba { margin: 0; padding: 22px 10px; font-size: 19px; background: var(--card, #fff); color: var(--ink); border: 2px solid var(--line); text-align: center; }
+.abas .aba.ativo { background: var(--mel); border-color: var(--mel); color: #221a08; }
