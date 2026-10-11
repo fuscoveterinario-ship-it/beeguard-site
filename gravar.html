@@ -152,14 +152,21 @@ $("#gerar").onclick = async () => {
   if (!confirm("Lembrete: depois de gravar a placa, IMPRIMA A ETIQUETA DA CAIXA.\n" +
     "O código de ativação só aparece agora e não pode ser visto depois.\n\nGerar o código da placa nova?")) return;
   $("#gerar").disabled = true;
-  const { data, error } = await sb.rpc("colmeia_admin_new_device");
+  // Gera a placa e manda a cópia da etiqueta por e-mail (redundância).
+  const { data, error } = await sb.functions.invoke("colmeia-nova-placa", { body: {} });
   $("#gerar").disabled = false;
-  if (error) return alert(errorText(error));
+  if (error || !data?.id) {
+    let msg = errorText(error || { message: "falha ao gerar" });
+    try { msg = (await error.context.json()).error || msg; } catch { /* sem detalhe */ }
+    return alert(msg);
+  }
   $("#dev-id").value = data.id;
   $("#dev-secret").value = data.secret;
   try { sessionStorage.setItem("beeguard-nova-placa", JSON.stringify(data)); } catch { /* sem armazenamento */ }
   etiqueta(data);
-  alert(`Placa nova: ${data.id}. Os dados já foram preenchidos abaixo. Grave a placa e imprima a etiqueta da caixa.`);
+  const copia = data.email === "enviado" ? `Uma cópia da etiqueta foi enviada para ${data.para}.`
+    : "ATENÇÃO: a cópia por e-mail NÃO foi enviada. Imprima a etiqueta agora.";
+  alert(`Placa nova: ${data.id}. Os dados já foram preenchidos abaixo.\n${copia}\nGrave a placa e imprima a etiqueta da caixa.`);
 };
 
 // Dados podem vir no link (#id=...&s=...&apn=...): o que vem depois do # não sai do computador.
