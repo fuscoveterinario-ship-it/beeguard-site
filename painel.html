@@ -228,7 +228,14 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
     }
     if (layer) layer.remove();
-    layer = L.featureGroup(pts.map((d) => L.marker([d.last_lat, d.last_lon]).bindPopup(esc(d.hive_label || d.id)))).addTo(map);
+    // Cada marcador com o nome da caixa e do apiário sempre à mostra.
+    layer = L.featureGroup(pts.map((d) => {
+      const caixa = esc(d.hive_label || d.id), ap = esc(nomeApiario[d.apiary_id] || "");
+      return L.marker([d.last_lat, d.last_lon])
+        .bindTooltip(ap ? `<b>${caixa}</b><br>${ap}` : `<b>${caixa}</b>`,
+          { permanent: true, direction: "top", offset: [-16, -14], className: "rotulo-mapa" })
+        .bindPopup(`<b>${caixa}</b>${ap ? "<br>" + ap : ""}<br>Rastreador ${esc(d.id)}`);
+    })).addTo(map);
     map.fitBounds(layer.getBounds(), { maxZoom: 16, padding: [30, 30] });
   }
 }

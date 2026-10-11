@@ -102,3 +102,6 @@ label.check input { width: auto; margin: 0; }
 .baixar-app { text-align: center; border-color: var(--mel); border-width: 2px; }
 .baixar-app button { font-size: 20px; margin-top: 0; }
 .baixar-app .ajuda { text-align: left; }
+
+/* Nome da caixa e do apiário sobre cada marcador do mapa */
+.leaflet-tooltip.rotulo-mapa { font-size: 12px; line-height: 1.25; padding: 3px 7px; text-align: center; }
