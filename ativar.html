@@ -22,6 +22,7 @@
     <h2>1. Dados da caixa</h2>
     <p class="passos">Rastreador <b id="d-id"></b>. Faça a ativação <b>num lugar com internet</b>, antes de levar a caixa ao apiário.</p>
     <form id="f-ativar">
+      <label id="a-dev-l" hidden>Código do rastreador (está na etiqueta da placa)<input id="a-dev" name="dev" autocomplete="off" placeholder="BG-0002" pattern="[A-Za-z0-9-]{3,20}"></label>
       <label>Código de ativação<input id="a-code" name="code" required autocomplete="off"></label>
 
       <label>Apiário<select id="a-apiario" name="apiario" required></select></label>
@@ -121,8 +122,10 @@
 import { $, show, sb, normalizePhone, ensureLogin, errorText, batteryPct, ago, mapsLink, esc } from "./app.js";
 
 const params = new URLSearchParams(location.search);
-const deviceId = (params.get("d") || "").toUpperCase();
-$("#d-id").textContent = deviceId || "(sem código no link)";
+let deviceId = (params.get("d") || "").toUpperCase();
+$("#d-id").textContent = deviceId || "novo";
+// Aberto pelo botão "Cadastrar novo rastreador" (sem o link da etiqueta): digita o código.
+if (!deviceId) { $("#a-dev-l").hidden = false; $("#a-dev").required = true; }
 $("#a-code").value = params.get("c") || "";
 
 let apiarios = [], colmeias = [], ocupadas = new Set();
@@ -180,6 +183,7 @@ ensureLogin($("#login"), async () => {
 f.onsubmit = async (ev) => {
   ev.preventDefault();
   const erro = (t) => { $("#erro-ativar").textContent = t; f.querySelector("button").disabled = false; };
+  if (!$("#a-dev-l").hidden) deviceId = f.dev.value.trim().toUpperCase();
   f.querySelector("button").disabled = true;
   try {
     const p1 = f.usar.checked ? null : tel(f.phone1.value, true);
