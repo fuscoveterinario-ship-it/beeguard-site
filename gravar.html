@@ -43,7 +43,14 @@
         </select></label>
       <label>Código do rastreador<input id="dev-id" required autocomplete="off" placeholder="BG-0001" pattern="[A-Za-z0-9-]{3,20}"></label>
       <label>Segredo<input id="dev-secret" required autocomplete="off" minlength="16" maxlength="128"></label>
-      <label>Operadora do chip
+      <label class="check"><input type="checkbox" id="usar-wifi"> Usar <b>Wi-Fi</b> em vez do chip (teste em casa)</label>
+      <div id="wifi-campos" hidden>
+        <label>Nome da rede Wi-Fi<input id="wifi-ssid" autocomplete="off" maxlength="32"></label>
+        <label>Senha do Wi-Fi<input id="wifi-pass" type="password" autocomplete="off" maxlength="63"></label>
+        <p class="msg">A placa só funciona em Wi-Fi de <b>2,4 GHz</b> (redes "5G" do roteador não aparecem para ela).
+          O GPS continua funcionando normalmente, sem chip.</p>
+      </div>
+      <label id="apn-l">Operadora do chip
         <select id="apn">
           <option value="zap.vivo.com.br">Vivo</option>
           <option value="claro.com.br">Claro</option>
@@ -86,8 +93,16 @@ if (h.get("apn")) {
 }
 if (h.get("placa")) $("#placa").value = h.get("placa");
 history.replaceState(null, "", location.pathname);  // tira o segredo da barra de endereço
-const apnVisivel = () => { $("#apn-outro-l").hidden = $("#apn").value !== "outro"; };
-$("#apn").onchange = apnVisivel; apnVisivel();
+const apnVisivel = () => {
+  const wifi = $("#usar-wifi").checked;
+  $("#wifi-campos").hidden = !wifi;
+  $("#apn-l").hidden = wifi;
+  $("#apn-outro-l").hidden = wifi || $("#apn").value !== "outro";
+};
+$("#apn").onchange = apnVisivel;
+if (h.get("wifi") === "1") $("#usar-wifi").checked = true;
+$("#usar-wifi").onchange = apnVisivel; apnVisivel();
+const hex = (t) => [...new TextEncoder().encode(t)].map((b) => b.toString(16).padStart(2, "0")).join("");
 
 function dados() {
   const id = $("#dev-id").value.trim().toUpperCase();
@@ -96,7 +111,13 @@ function dados() {
   if (!/^[A-Z0-9-]{3,20}$/.test(id)) throw new Error("Código inválido (ex.: BG-0001).");
   if (!/^[\x21-\x7e]{16,128}$/.test(secret)) throw new Error("Segredo inválido.");
   if (!/^[\x21-\x7e]{1,63}$/.test(apn)) throw new Error("APN inválido.");
-  return { id, secret, apn };
+  let wifi = null;
+  if ($("#usar-wifi").checked) {
+    const ssid = $("#wifi-ssid").value, pass = $("#wifi-pass").value;
+    if (!ssid.trim()) throw new Error("Digite o nome da rede Wi-Fi.");
+    wifi = { ssid, pass };
+  }
+  return { id, secret, apn, wifi };
 }
 
 let porta = null;
@@ -137,7 +158,7 @@ async function gravar(placa) {
 }
 
 // Fala com o programa da placa: espera "BEEGUARD READY" e manda o código e o segredo.
-async function configurar({ id, secret, apn }) {
+async function configurar({ id, secret, apn, wifi }) {
   if (!porta) porta = await navigator.serial.requestPort();
   for (let i = 0; i < 20; i++) {  // depois de reiniciar, a porta USB demora um pouco para voltar
     try { await porta.open({ baudRate: 115200 }); break; } catch (e) {
@@ -151,7 +172,9 @@ async function configurar({ id, secret, apn }) {
   const reader = porta.readable.getReader();
   let buf = "", enviado = false, ok = false;
   const limite = Date.now() + 60000;
+  let wifiOk = false, cfgOk = false;
   const enviar = async () => { await writer.write(enc.encode(`CFG ${id} ${secret} ${apn}\n`)); enviado = true; };
+  const enviarWifi = () => writer.write(enc.encode(wifi ? `WIFI ${hex(wifi.ssid)} ${hex(wifi.pass)}\n` : "WIFI -\n"));
   // A placa só escuta a configuração por alguns segundos depois de ligar: manda já e repete ao ver READY.
   enviar().catch(() => {});
   try {
@@ -168,10 +191,13 @@ async function configurar({ id, secret, apn }) {
       let nl;
       while ((nl = buf.indexOf("\n")) >= 0) {
         const linha = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
-        if (linha.startsWith("BEEGUARD READY") && !ok) await enviar();
-        if (linha.startsWith("BEEGUARD CFG OK")) {
+        if (linha.startsWith("BEEGUARD READY") && !cfgOk) await enviar();
+        if (linha.startsWith("BEEGUARD CFG OK") && !cfgOk) { cfgOk = true; await enviarWifi(); }
+        if (linha.startsWith("BEEGUARD WIFI ERRO")) estado("A placa recusou o Wi-Fi. Confira o nome e a senha.", "erro");
+        if (linha.startsWith("BEEGUARD WIFI OK") && !ok) {
+          wifiOk = true;
           ok = true;
-          estado(`<span class="ok-txt">✓ Rastreador ${id} configurado.</span> Acompanhe abaixo as mensagens da placa.`);
+          estado(`<span class="ok-txt">✓ Rastreador ${id} configurado${wifi ? " no Wi-Fi " + wifi.ssid.replace(/[<>&]/g, "") : ""}.</span> Acompanhe abaixo as mensagens da placa.`);
         }
         if (linha.startsWith("BEEGUARD CFG ERRO")) estado("A placa recusou os dados. Confira o código e o segredo.", "erro");
       }
