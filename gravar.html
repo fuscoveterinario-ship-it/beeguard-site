@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gravar rastreador · Bee Guard</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="icone.png">
+<meta name="theme-color" content="#111111">
+<style>
+  .log { background: #111; color: #d7f5d0; font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; border-radius: 10px;
+    padding: 12px; height: 260px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+  .barra-prog { height: 14px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 10px 0; }
+  .barra-prog > div { height: 100%; width: 0; background: var(--mel); transition: width .2s; }
+  .passo h2 small { display: block; font-size: 15px; font-weight: 400; color: var(--muted); margin-top: 4px; }
+  .ok-txt { color: var(--ok); font-weight: 700; }
+</style>
+</head>
+<body>
+<header><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Gravar rastreador</small></span></a></header>
+<main>
+  <section class="card" id="sem-suporte" hidden>
+    <p class="erro">Esta página precisa do <b>Google Chrome</b> ou do <b>Microsoft Edge</b> no <b>computador</b>.</p>
+  </section>
+
+  <section class="card passo">
+    <h2>Antes de começar<small>Placa LILYGO com as duas antenas ligadas</small></h2>
+    <ol>
+      <li>Ligue o cabo USB no conector <b>USB do ESP32</b> da placa (<b>não</b> no que tem escrito <b>Modem-USB</b>) e no computador.</li>
+      <li>Coloque o <b>chip de celular</b> na placa (com a placa desligada).</li>
+      <li>Preencha os dados abaixo e clique em <b>Gravar</b>. Não tire o cabo até terminar.</li>
+    </ol>
+  </section>
+
+  <section class="card passo">
+    <h2>Dados do rastreador</h2>
+    <form id="f">
+      <label>Placa
+        <select id="placa">
+          <option value="t-sim7080g-s3">LILYGO T-SIM7080G-S3 (protótipo)</option>
+          <option value="t-a7670">LILYGO T-A7670SA (produção)</option>
+        </select></label>
+      <label>Código do rastreador<input id="dev-id" required autocomplete="off" placeholder="BG-0001" pattern="[A-Za-z0-9-]{3,20}"></label>
+      <label>Segredo<input id="dev-secret" required autocomplete="off" minlength="16" maxlength="128"></label>
+      <label>Operadora do chip
+        <select id="apn">
+          <option value="zap.vivo.com.br">Vivo</option>
+          <option value="claro.com.br">Claro</option>
+          <option value="timbrasil.br">TIM</option>
+          <option value="outro">Outra (digitar o APN)</option>
+        </select></label>
+      <label id="apn-outro-l" hidden>APN<input id="apn-outro" autocomplete="off"></label>
+      <button id="gravar">Gravar programa e configurar</button>
+      <button type="button" class="secundario" id="so-config">Só configurar (programa já gravado)</button>
+    </form>
+    <div class="barra-prog" id="prog-wrap" hidden><div id="prog"></div></div>
+    <p class="msg" id="estado"></p>
+  </section>
+
+  <section class="card passo">
+    <h2>Mensagens da placa<small>Depois de configurar, a placa liga o modem e tenta mandar a primeira mensagem</small></h2>
+    <div class="log" id="log" aria-live="polite"></div>
+    <p class="msg">O que procurar: <b>rede OK</b> (achou o sinal do chip), <b>HTTP 200</b> (a plataforma recebeu)
+      e <b>GPS</b> (deixe a antena quadrada perto de uma janela).</p>
+  </section>
+</main>
+
+<script type="module">
+import { ESPLoader, Transport } from "https://cdn.jsdelivr.net/npm/esptool-js@0.7.0/bundle.js";
+
+const $ = (s) => document.querySelector(s);
+const estado = (t, cls = "msg") => { $("#estado").className = cls; $("#estado").innerHTML = t; };
+const log = (t) => { const el = $("#log"); el.textContent += t; if (el.textContent.length > 60000) el.textContent = el.textContent.slice(-40000); el.scrollTop = el.scrollHeight; };
+
+if (!("serial" in navigator)) { $("#sem-suporte").hidden = false; $("#gravar").disabled = $("#so-config").disabled = true; }
+
+// Dados podem vir no link (#id=...&s=...&apn=...): o que vem depois do # não sai do computador.
+const h = new URLSearchParams(location.hash.slice(1));
+if (h.get("id")) $("#dev-id").value = h.get("id");
+if (h.get("s")) $("#dev-secret").value = h.get("s");
+if (h.get("apn")) {
+  const known = [...$("#apn").options].some((o) => o.value === h.get("apn"));
+  $("#apn").value = known ? h.get("apn") : "outro";
+  if (!known) $("#apn-outro").value = h.get("apn");
+}
+if (h.get("placa")) $("#placa").value = h.get("placa");
+history.replaceState(null, "", location.pathname);  // tira o segredo da barra de endereço
+const apnVisivel = () => { $("#apn-outro-l").hidden = $("#apn").value !== "outro"; };
+$("#apn").onchange = apnVisivel; apnVisivel();
+
+function dados() {
+  const id = $("#dev-id").value.trim().toUpperCase();
+  const secret = $("#dev-secret").value.trim();
+  const apn = $("#apn").value === "outro" ? $("#apn-outro").value.trim() : $("#apn").value;
+  if (!/^[A-Z0-9-]{3,20}$/.test(id)) throw new Error("Código inválido (ex.: BG-0001).");
+  if (!/^[\x21-\x7e]{16,128}$/.test(secret)) throw new Error("Segredo inválido.");
+  if (!/^[\x21-\x7e]{1,63}$/.test(apn)) throw new Error("APN inválido.");
+  return { id, secret, apn };
+}
+
+let porta = null;
+
+async function gravar(placa) {
+  const base = `firmware/${placa}/`;
+  estado("Baixando o programa…");
+  const man = await (await fetch(base + "manifest.json", { cache: "no-store" })).json();
+  const arquivos = await Promise.all(man.arquivos.map(async (a) => ({
+    address: a.endereco,
+    data: new Uint8Array(await (await fetch(base + a.arquivo, { cache: "no-store" })).arrayBuffer()),
+  })));
+  estado("Escolha a placa na janela que abriu (normalmente aparece como <b>USB JTAG/serial</b> ou <b>USB Serial</b>).");
+  porta = await navigator.serial.requestPort();
+  const transport = new Transport(porta, false);
+  const terminal = { clean() {}, writeLine: (t) => log(t + "\n"), write: (t) => log(t) };
+  const loader = new ESPLoader({ transport, baudrate: 460800, romBaudrate: 115200, terminal });
+  estado("Conectando na placa…");
+  const chip = await loader.main();
+  log(`\nPlaca encontrada: ${chip}\n`);
+  if (!chip.toUpperCase().startsWith(man.chip.toUpperCase())) {
+    log(`Atenção: esperado ${man.chip}, encontrado ${chip}.\n`);
+  }
+  $("#prog-wrap").hidden = false;
+  const total = arquivos.reduce((t, a) => t + a.data.length, 0);
+  const antes = arquivos.map((_, i) => arquivos.slice(0, i).reduce((t, a) => t + a.data.length, 0));
+  await loader.writeFlash({
+    fileArray: arquivos, flashMode: "keep", flashFreq: "keep", flashSize: "keep", eraseAll: false, compress: true,
+    reportProgress: (i, w, t) => {
+      const pct = Math.round(((antes[i] + (w / t) * arquivos[i].data.length) / total) * 100);
+      $("#prog").style.width = pct + "%";
+      estado(`Gravando o programa ${man.versao}: ${pct}%`);
+    },
+  });
+  estado("Programa gravado. Reiniciando a placa…");
+  await loader.after("hard_reset", true);
+  await transport.disconnect();
+}
+
+// Fala com o programa da placa: espera "BEEGUARD READY" e manda o código e o segredo.
+async function configurar({ id, secret, apn }) {
+  if (!porta) porta = await navigator.serial.requestPort();
+  for (let i = 0; i < 20; i++) {  // depois de reiniciar, a porta USB demora um pouco para voltar
+    try { await porta.open({ baudRate: 115200 }); break; } catch (e) {
+      if (i === 19) throw new Error("Não consegui falar com a placa. Aperte o botão RST da placa e clique em “Só configurar”.");
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+  estado("Configurando o rastreador…");
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const writer = porta.writable.getWriter();
+  const reader = porta.readable.getReader();
+  let buf = "", enviado = false, ok = false;
+  const limite = Date.now() + 60000;
+  const enviar = async () => { await writer.write(enc.encode(`CFG ${id} ${secret} ${apn}\n`)); enviado = true; };
+  // A placa só escuta a configuração por alguns segundos depois de ligar: manda já e repete ao ver READY.
+  enviar().catch(() => {});
+  try {
+    while (true) {
+      let value, done;
+      try { ({ value, done } = await reader.read()); } catch (e) {
+        if (ok) { log("\n(a placa desconectou o USB: normal quando ela vai dormir para poupar bateria)\n"); break; }
+        throw e;
+      }
+      if (done) break;
+      const t = dec.decode(value);
+      buf += t;
+      log(t.replace(new RegExp(secret.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), "••••••"));
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const linha = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+        if (linha.startsWith("BEEGUARD READY") && !ok) await enviar();
+        if (linha.startsWith("BEEGUARD CFG OK")) {
+          ok = true;
+          estado(`<span class="ok-txt">✓ Rastreador ${id} configurado.</span> Acompanhe abaixo as mensagens da placa.`);
+        }
+        if (linha.startsWith("BEEGUARD CFG ERRO")) estado("A placa recusou os dados. Confira o código e o segredo.", "erro");
+      }
+      if (!ok && Date.now() > limite) {
+        estado("A placa não respondeu. Aperte o botão <b>RST</b> da placa e clique em <b>Só configurar</b>.", "erro");
+        break;
+      }
+    }
+  } finally {
+    try { reader.releaseLock(); writer.releaseLock(); await porta.close(); } catch { /* porta já fechada */ }
+  }
+  return enviado && ok;
+}
+
+$("#f").onsubmit = async (ev) => {
+  ev.preventDefault();
+  let d; try { d = dados(); } catch (e) { return estado(e.message, "erro"); }
+  $("#gravar").disabled = $("#so-config").disabled = true;
+  try {
+    await gravar($("#placa").value);
+    await configurar(d);
+  } catch (e) {
+    estado(String(e.message || e), "erro");
+  } finally {
+    $("#gravar").disabled = $("#so-config").disabled = false;
+  }
+};
+$("#so-config").onclick = async () => {
+  let d; try { d = dados(); } catch (e) { return estado(e.message, "erro"); }
+  $("#gravar").disabled = $("#so-config").disabled = true;
+  try {
+    if (porta) { try { await porta.close(); } catch { /* já fechada */ } }
+    porta = await navigator.serial.requestPort();
+    await configurar(d);
+  } catch (e) {
+    estado(String(e.message || e), "erro");
+  } finally {
+    $("#gravar").disabled = $("#so-config").disabled = false;
+  }
+};
+</script>
+</body>
+</html>
