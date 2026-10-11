@@ -15,6 +15,17 @@
   .barra-prog > div { height: 100%; width: 0; background: var(--mel); transition: width .2s; }
   .passo h2 small { display: block; font-size: 15px; font-weight: 400; color: var(--muted); margin-top: 4px; }
   .ok-txt { color: var(--ok); font-weight: 700; }
+  .etiqueta { border: 2px dashed var(--line); border-radius: 12px; padding: 16px; display: grid;
+    grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center; background: #fff; color: #111; }
+  .etiqueta .marca-et { grid-column: 1 / -1; font-weight: 800; letter-spacing: .5px; }
+  .etiqueta span { display: block; font-size: 13px; color: #555; }
+  .etiqueta b { font-size: 22px; letter-spacing: 1px; }
+  .etiqueta small { grid-column: 1 / -1; color: #555; }
+  @media print {
+    body * { visibility: hidden; }
+    #etiqueta, #etiqueta * { visibility: visible; }
+    #etiqueta { position: absolute; top: 0; left: 0; width: 9cm; border: 1px solid #000; }
+  }
 </style>
 </head>
 <body>
@@ -31,6 +42,27 @@
       <li>Coloque o <b>chip de celular</b> na placa (com a placa desligada).</li>
       <li>Preencha os dados abaixo e clique em <b>Gravar</b>. Não tire o cabo até terminar.</li>
     </ol>
+  </section>
+
+  <section class="card passo" id="equipe" hidden>
+    <h2>Placa nova<small>Área da equipe Bee Guard</small></h2>
+    <p class="msg">Gera o código da próxima placa (BG-0002, BG-0003…) e a etiqueta que vai na caixa.
+      O apicultor só usa a etiqueta para ativar; ele não mexe na placa.</p>
+    <button type="button" id="gerar">Gerar código para uma placa nova</button>
+  </section>
+
+  <section class="card passo" id="etiqueta-card" hidden>
+    <h2>Etiqueta da caixa<small>Imprima e cole na caixa. O apicultor ativa com estes dois códigos.</small></h2>
+    <div class="etiqueta" id="etiqueta">
+      <div class="marca-et">BEE GUARD · rastreador para colmeias</div>
+      <div>
+        <span>Código do rastreador</span><b id="et-id"></b>
+        <span style="margin-top:8px">Código de ativação</span><b id="et-claim"></b>
+      </div>
+      <div id="et-qr"></div>
+      <small>Para ativar: beeguard.com.br → Cadastrar novo rastreador, ou leia o QR Code com o celular.</small>
+    </div>
+    <button type="button" class="secundario" id="imprimir">Imprimir etiqueta</button>
   </section>
 
   <section class="card passo">
@@ -74,14 +106,49 @@
   </section>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
 import { ESPLoader, Transport } from "https://cdn.jsdelivr.net/npm/esptool-js@0.7.0/bundle.js";
+import { sb, errorText } from "./app.js";
 
 const $ = (s) => document.querySelector(s);
 const estado = (t, cls = "msg") => { $("#estado").className = cls; $("#estado").innerHTML = t; };
 const log = (t) => { const el = $("#log"); el.textContent += t; if (el.textContent.length > 60000) el.textContent = el.textContent.slice(-40000); el.scrollTop = el.scrollHeight; };
 
 if (!("serial" in navigator)) { $("#sem-suporte").hidden = false; $("#gravar").disabled = $("#so-config").disabled = true; }
+
+// Equipe Bee Guard: gera o código de uma placa nova e mostra a etiqueta da caixa.
+function etiqueta({ id, claim }) {
+  $("#et-id").textContent = id;
+  $("#et-claim").textContent = claim;
+  $("#et-qr").innerHTML = "";
+  const url = `https://beeguard.com.br/ativar.html?d=${encodeURIComponent(id)}&c=${encodeURIComponent(claim)}`;
+  if (window.QRCode) new QRCode($("#et-qr"), { text: url, width: 120, height: 120 });
+  $("#etiqueta-card").hidden = false;
+}
+$("#imprimir").onclick = () => print();
+sb.auth.getSession().then(async ({ data }) => {
+  if (!data.session) return;
+  const { data: admin } = await sb.rpc("colmeia_is_admin");
+  if (!admin) return;
+  $("#equipe").hidden = false;
+  try {
+    const ult = JSON.parse(sessionStorage.getItem("beeguard-nova-placa") || "null");
+    if (ult) etiqueta(ult);
+  } catch { /* sem armazenamento */ }
+});
+$("#gerar").onclick = async () => {
+  if ($("#etiqueta-card").hidden === false && !confirm("Gerar outro código? Imprima antes a etiqueta que está na tela.")) return;
+  $("#gerar").disabled = true;
+  const { data, error } = await sb.rpc("colmeia_admin_new_device");
+  $("#gerar").disabled = false;
+  if (error) return alert(errorText(error));
+  $("#dev-id").value = data.id;
+  $("#dev-secret").value = data.secret;
+  try { sessionStorage.setItem("beeguard-nova-placa", JSON.stringify(data)); } catch { /* sem armazenamento */ }
+  etiqueta(data);
+  alert(`Placa nova: ${data.id}. Os dados já foram preenchidos abaixo. Grave a placa e imprima a etiqueta da caixa.`);
+};
 
 // Dados podem vir no link (#id=...&s=...&apn=...): o que vem depois do # não sai do computador.
 const h = new URLSearchParams(location.hash.slice(1));
