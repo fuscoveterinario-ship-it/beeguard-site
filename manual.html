@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual do apicultor · Bee Guard</title>
+<meta name="description" content="Manual de uso do rastreador Bee Guard para colmeias: instalação, ativação, avisos no celular e cuidados.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<meta name="theme-color" content="#111111">
+<style>
+  .capa { text-align: center; padding: 28px 16px; }
+  .capa img { width: 140px; height: 140px; border-radius: 24px; background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.15); }
+  .capa h1 { font-size: 30px; margin: 18px 0 4px; letter-spacing: .02em; }
+  .capa p { margin: 4px 0; color: var(--muted); }
+  .indice ol { padding-left: 22px; margin: 6px 0; }
+  .indice a { color: var(--ink); }
+  .manual h2 { display: flex; align-items: center; gap: 10px; }
+  .manual h2 .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--mel); color: #221a08;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 17px; }
+  .manual h3 { margin: 18px 0 6px; font-size: 18px; }
+  .manual ol, .manual ul { padding-left: 22px; }
+  .manual li { margin: 6px 0; }
+  .dica { border-left: 4px solid var(--mel); background: color-mix(in srgb, var(--mel) 12%, transparent);
+    border-radius: 8px; padding: 8px 12px; margin: 12px 0; }
+  .atencao { border-left: 4px solid var(--alerta); background: color-mix(in srgb, var(--alerta) 10%, transparent);
+    border-radius: 8px; padding: 8px 12px; margin: 12px 0; }
+  .aviso-tab { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .aviso-tab th, .aviso-tab td { text-align: left; vertical-align: top; padding: 8px; border-top: 1px solid var(--line); }
+  .aviso-tab th { color: var(--muted); font-weight: 600; }
+  .sms { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
+  .acoes-manual { display: flex; gap: 10px; flex-wrap: wrap; }
+  .acoes-manual .btn { width: auto; flex: 1 1 200px; margin: 6px 0; }
+  @media print {
+    header, .acoes-manual { display: none !important; }
+    body { background: #fff; color: #111; font-size: 13px; }
+    main { max-width: none; padding: 0; }
+    .card { border: 0; padding: 0 0 8px; break-inside: avoid; }
+    .capa { break-after: page; padding-top: 120px; }
+    .manual h2 .num { border: 1px solid #a88600; }
+  }
+</style>
+</head>
+<body>
+<header><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Manual do apicultor</small></span></a></header>
+<main class="manual">
+
+  <section class="card capa">
+    <img src="icone.png" alt="Logo Bee Guard" width="140" height="140">
+    <h1>BEE GUARD</h1>
+    <p><b>Rastreador para colmeias</b></p>
+    <p>Manual do apicultor</p>
+    <div class="acoes-manual">
+      <a class="btn" href="painel.html">Abrir meus rastreadores</a>
+      <button type="button" class="secundario" onclick="print()">Imprimir este manual</button>
+    </div>
+  </section>
+
+  <nav class="card indice" aria-label="Índice">
+    <h2>Índice</h2>
+    <ol>
+      <li><a href="#o-que-e">O que o Bee Guard faz</a></li>
+      <li><a href="#caixa">O que vem na caixa</a></li>
+      <li><a href="#instalar">Instalação em 5 passos</a></li>
+      <li><a href="#app">App no celular</a></li>
+      <li><a href="#painel">Usando o painel</a></li>
+      <li><a href="#avisos">Avisos que chegam no celular</a></li>
+      <li><a href="#manutencao">Vou mexer na caixa (manutenção)</a></li>
+      <li><a href="#cuidados">Cuidados com o rastreador</a></li>
+      <li><a href="#duvidas">Dúvidas comuns</a></li>
+    </ol>
+  </nav>
+
+  <section class="card" id="o-que-e">
+    <h2><span class="num">1</span> O que o Bee Guard faz</h2>
+    <p>O Bee Guard é um pequeno rastreador que fica <b>dentro da colmeia</b>. Ele:</p>
+    <ul>
+      <li><b>Avisa no seu celular</b> quando a caixa é mexida ou sai do lugar.</li>
+      <li><b>Mostra no mapa</b> onde a caixa está, pelo GPS.</li>
+      <li>Em caso de roubo, <b>acompanha a caixa</b> e manda a posição de tempos em tempos.</li>
+      <li>Na colmeia com balança, <b>acompanha o peso</b>: avisa a hora da colheita, falta de alimento e enxameação.</li>
+    </ul>
+    <p>Ele passa a maior parte do tempo "dormindo" para a bateria durar meses, e acorda na hora em que a caixa é mexida.</p>
+  </section>
+
+  <section class="card" id="caixa">
+    <h2><span class="num">2</span> O que vem na caixa</h2>
+    <ul>
+      <li>O <b>rastreador Bee Guard</b>, com as antenas já ligadas.</li>
+      <li>A <b>etiqueta</b> com o <b>código do rastreador</b> (ex.: BG-0002), o <b>código de ativação</b> e o <b>QR Code</b>.</li>
+    </ul>
+    <p>Você vai precisar também de:</p>
+    <ul>
+      <li>Um <b>chip de celular</b> com internet (a equipe Bee Guard indica a operadora que pega melhor no seu apiário).</li>
+      <li>Uma <b>bateria 18650</b> de boa qualidade (ex.: Samsung 35E ou LG MJ1), se ainda não vier instalada.</li>
+    </ul>
+    <p class="atencao"><b>Guarde a etiqueta.</b> O código de ativação é a "chave" do seu rastreador.</p>
+  </section>
+
+  <section class="card" id="instalar">
+    <h2><span class="num">3</span> Instalação em 5 passos</h2>
+    <p class="dica">Faça a ativação <b>em casa ou num lugar com internet</b>, antes de levar a caixa para o apiário.</p>
+    <ol>
+      <li><b>Chip:</b> antes, coloque o chip num celular e <b>tire a senha (PIN)</b> dele. Depois, com o rastreador desligado, coloque o chip na gaveta do rastreador.</li>
+      <li><b>Bateria:</b> coloque a bateria 18650 com o <b>+</b> do lado marcado com <b>+</b>. <b>Ao contrário estraga o rastreador.</b></li>
+      <li><b>Ligar:</b> passe a chave lateral para <b>ON</b>.</li>
+      <li><b>Ativar:</b> leia o <b>QR Code da etiqueta</b> com a câmera do celular (ou entre em <b>beeguard.com.br</b> → <b>Cadastrar novo rastreador</b> e digite os dois códigos). Escolha o <b>apiário</b> e a <b>colmeia</b>. Os telefones do apiário já aparecem preenchidos: troque só se quiser. Toque em <b>Ativar</b>.</li>
+      <li><b>Teste:</b> a tela mostra <b>"Rastreador comunicando"</b> em até 2 minutos. Pronto: leve a caixa para o apiário.</li>
+    </ol>
+    <h3>Onde colocar na colmeia</h3>
+    <ul>
+      <li>De preferência na <b>tampa</b> ou na <b>parte de cima</b> da caixa: quanto mais alto, melhor o sinal.</li>
+      <li>A <b>antena quadrada (GPS)</b> deve ficar <b>virada para o céu</b>, sem metal por cima.</li>
+      <li>Proteja da <b>chuva e da umidade</b>.</li>
+    </ul>
+    <p class="dica">Nas primeiras <b>12 horas</b> no apiário, o rastreador "aprende" o local. Depois disso, se a caixa sair de lá, você é avisado.</p>
+  </section>
+
+  <section class="card" id="app">
+    <h2><span class="num">4</span> App no celular</h2>
+    <p>Para receber os avisos <b>na hora e de graça</b>, instale o app:</p>
+    <ol>
+      <li>Abra <b>beeguard.com.br</b> no celular e toque em <b>Baixar o app</b>.</li>
+      <li>Entre com o seu número de celular (chega um código por SMS).</li>
+      <li>No painel, toque em <b>Ativar alertas neste celular</b> e depois em <b>Mandar uma notificação de teste</b>.</li>
+    </ol>
+    <p>O <b>SMS continua chegando</b> como reserva, para quando o celular estiver sem internet.</p>
+  </section>
+
+  <section class="card" id="painel">
+    <h2><span class="num">5</span> Usando o painel</h2>
+    <p>Em <b>beeguard.com.br</b> → <b>Meus rastreadores</b>:</p>
+    <ul>
+      <li><b>Mapa dos apiários:</b> mostra onde está cada caixa, com o nome dela e do apiário.</li>
+      <li><b>Precisa da sua atenção:</b> aparece embaixo do mapa só quando alguma caixa está em alerta.</li>
+      <li><b>Meus apiários e colmeias:</b>
+        <ul>
+          <li><b>Produtividade:</b> peso das colmeias com balança, mel colhido no ano e o valor por colmeia.</li>
+          <li><b>Apiários:</b> cada apiário com as caixas, bateria, última mensagem e o botão de manutenção.</li>
+        </ul>
+      </li>
+      <li><b>Cadastrar novo rastreador:</b> para ativar outra caixa.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="avisos">
+    <h2><span class="num">6</span> Avisos que chegam no celular</h2>
+    <table class="aviso-tab">
+      <tr><th>Aviso</th><th>O que fazer</th></tr>
+      <tr><td><b>Caixa movimentada</b><div class="sms">ALERTA BEE GUARD: a Caixa 3 (Apiário Santa Rita) foi movimentada. Foi você?</div></td>
+        <td>Abra o link e responda <b>em até 5 minutos</b>: <b>"Sou eu (manutenção)"</b> ou <b>"Possível roubo"</b>.</td></tr>
+      <tr><td><b>Possível roubo</b> (sem resposta em 5 min)</td>
+        <td>O rastreamento é ativado sozinho. Abra o link para ver o <b>mapa e o trajeto</b>. Se for roubo, procure a polícia com o link.</td></tr>
+      <tr><td><b>Ataque ao apiário</b> (várias caixas mexidas)</td>
+        <td>Mesmo cuidado do roubo: veja o mapa e acione ajuda.</td></tr>
+      <tr><td><b>Caixa fora do local</b></td>
+        <td>A caixa saiu do lugar onde costuma ficar. Responda se foi você.</td></tr>
+      <tr><td><b>Bateria baixa</b></td>
+        <td>Recarregue ou troque a bateria nos próximos dias.</td></tr>
+      <tr><td><b>Sem comunicação</b></td>
+        <td>O rastreador não mandou sinal há mais de 2 dias. Veja a bateria, o chip e o sinal no local.</td></tr>
+      <tr><td><b>Hora da colheita / pouco peso / enxameação</b> (só com balança)</td>
+        <td>Avisos de produtividade: confira a colmeia.</td></tr>
+    </table>
+    <p class="atencao"><b>Nunca vá sozinho atrás de uma caixa roubada.</b> Passe o link do mapa para a polícia.</p>
+  </section>
+
+  <section class="card" id="manutencao">
+    <h2><span class="num">7</span> Vou mexer na caixa (manutenção)</h2>
+    <p>Antes de revisar, colher ou trocar a caixa de lugar, avise o sistema para não receber alerta:</p>
+    <ol>
+      <li>No painel, abra <b>Meus apiários e colmeias → Apiários</b>.</li>
+      <li>Toque em <b>"Vou mexer nesta caixa (manutenção 2 h)"</b>, ou em <b>"Vou mexer no apiário todo"</b>.</li>
+    </ol>
+    <p>Durante 2 horas, mexer na caixa não gera alerta. Se você <b>mudar o apiário de lugar</b> nesse tempo, o rastreador aprende o local novo sozinho.</p>
+    <p class="dica">Esqueceu de avisar? Sem problema: quando chegar o alerta, responda <b>"Sou eu (manutenção)"</b>.</p>
+  </section>
+
+  <section class="card" id="cuidados">
+    <h2><span class="num">8</span> Cuidados com o rastreador</h2>
+    <ul>
+      <li>Use só <b>bateria 18650 de marca boa</b>. Fuja das que prometem "9800 mAh": são falsas e duram pouco.</li>
+      <li>Mantenha o <b>chip com crédito ou plano ativo</b>. Chip sem recarga pode ser cancelado pela operadora.</li>
+      <li>Não deixe <b>metal por cima</b> da antena do GPS.</li>
+      <li>Proteja da <b>água</b>: o rastreador não pode ficar molhado.</li>
+      <li>Não abra nem mexa na placa: em caso de problema, fale com a equipe Bee Guard.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="duvidas">
+    <h2><span class="num">9</span> Dúvidas comuns</h2>
+    <h3>A bateria dura quanto tempo?</h3>
+    <p>Meses, porque o rastreador passa quase todo o tempo dormindo. Ela gasta mais quando há muitos alertas ou rastreamento de roubo.</p>
+    <h3>O rastreador funciona sem sinal de celular?</h3>
+    <p>Ele guarda as mensagens e manda quando o sinal voltar. Por isso é importante escolher a operadora que pega no apiário.</p>
+    <h3>A posição no mapa não aparece.</h3>
+    <p>O GPS precisa ver o céu. Deixe a antena quadrada virada para cima e sem nada por cima. Se não achar a posição, o rastreador tenta de novo a cada hora.</p>
+    <h3>Troquei o celular. Continuo recebendo os avisos?</h3>
+    <p>Os SMS continuam no mesmo número. No celular novo, instale o app de novo e ative os avisos.</p>
+    <h3>Quero trocar o telefone que recebe os avisos.</h3>
+    <p>Em <b>Meus apiários e colmeias → Criar ou editar apiários e colmeias</b>, abra o apiário, troque o telefone e toque em <b>Salvar</b>.</p>
+  </section>
+
+  <section class="card capa">
+    <img src="icone.png" alt="" width="80" height="80" style="width:80px;height:80px">
+    <p><b>Bee Guard</b> · beeguard.com.br</p>
+    <p>Dúvidas? Fale com a equipe Bee Guard.</p>
+  </section>
+</main>
+</body>
+</html>
