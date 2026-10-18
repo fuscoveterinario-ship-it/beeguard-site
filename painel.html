@@ -81,7 +81,7 @@ function situacaoApiario(ds, alertas) {
   return ["ok", ds.length ? "protegido" : "sem rastreador"];
 }
 
-const tituloFogo = (f) => (f.level === "urgente" ? "🔴 URGENTE" : "🟡 ATENÇÃO");
+const tituloFogo = (f) => (f.level === "urgente" ? "URGENTE" : "ATENÇÃO");
 const distFogo = (f) => f.distance_m >= 1000 ? `${(f.distance_m / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(f.distance_m)} m`;
 
 async function carregar() {
@@ -279,12 +279,11 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
     if (error) alert(errorText(error)); else carregar();
   });
 
-  $("#fogos").innerHTML = (fogos || []).map((f) => `<div class="fogo fogo-${f.level}${f.status === "aberto" ? "" : " resolvido"}">
+  // O aviso acima do mapa some depois que o apicultor confirma; o foco continua no mapa por 24 horas.
+  $("#fogos").innerHTML = (fogos || []).filter((f) => f.status === "aberto").map((f) => `<div class="fogo fogo-${f.level}">
       <b>${tituloFogo(f)}</b>: foco de queimada a ${esc(distFogo(f))} do apiário ${esc(f.apiario)}
       <small>(satélite, ${esc(fmtDate(f.detected_at))})</small>
-      ${f.status === "aberto"
-        ? `<button type="button" data-fogo="${f.id}">Medidas tomadas</button>${f.level === "urgente" ? `<small>SMS a cada 5 min até você confirmar (${f.sends} de 10).</small>` : ""}`
-        : "<small>✓ Medidas tomadas.</small>"}</div>`).join("");
+      <button type="button" data-fogo="${f.id}">${f.level === "urgente" ? "Medidas tomadas" : "Ciente"}</button>${f.level === "urgente" ? `<small>SMS a cada 5 min até você confirmar (${f.sends} de 10).</small>` : ""}</div>`).join("");
   document.querySelectorAll("[data-fogo]").forEach((b) => b.onclick = async () => {
     b.disabled = true;
     const { error } = await sb.rpc("colmeia_fire_resolve", { p_id: Number(b.dataset.fogo) });
@@ -320,7 +319,7 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
       const urgente = f.level === "urgente" && f.status === "aberto";
       L.circleMarker([f.lat, f.lon], { radius: 9, weight: 2, color: urgente ? "#c62828" : "#b26a00",
         fillColor: urgente ? "#ef5350" : "#ffb74d", fillOpacity: f.status === "aberto" ? 0.9 : 0.4 })
-        .bindTooltip(`<b>${tituloFogo(f)}</b><br>queimada a ${esc(distFogo(f))}`,
+        .bindTooltip(`<b>Queimada</b><br>${esc(distFogo(f))} do ${esc(f.apiario)}<br><small>${esc(fmtDate(f.detected_at))}</small>`,
           { permanent: true, direction: "top", offset: [0, -8], className: `rotulo-mapa fogo-${f.level}` })
         .addTo(layer);
     }
