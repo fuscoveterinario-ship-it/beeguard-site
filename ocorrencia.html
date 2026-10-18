@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boletim de ocorrência</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bee Guard">
+<meta name="theme-color" content="#111111">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+</head>
+<body class="relatorio">
+<header class="sem-impressao"><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Boletim de ocorrência</small></span></a></header>
+<main>
+  <section class="card" id="login"><p class="msg">Carregando… (precisa de internet)</p></section>
+  <p class="erro card" id="erro" hidden></p>
+
+  <div id="relatorio" hidden>
+    <section class="card sem-impressao alerta-190" id="ligar-190" hidden>
+      <h2>A caixa está se movendo agora</h2>
+      <p>Ligue para a Polícia Militar: com o mapa ao vivo, eles podem ir atrás das caixas. É a maior chance de recuperar.</p>
+      <a class="btn perigo" href="tel:190">🚨 Ligar 190</a>
+      <a class="btn secundario" id="mapa-vivo" hidden>Abrir o mapa ao vivo</a>
+    </section>
+
+    <section class="card sem-impressao" id="dados-card" hidden></section>
+
+    <section class="card sem-impressao">
+      <p>Confira os dados abaixo, toque em <b>Gerar PDF</b> e envie no B.O. pela internet ou leve à delegacia.
+        Serve também para o seguro.</p>
+      <button type="button" id="imprimir">Gerar PDF</button>
+      <a class="btn secundario" id="bo-online" target="_blank" rel="noopener">💻 Fazer o B.O. pela internet</a>
+      <button type="button" class="secundario" id="delegacias">📍 Delegacias perto de mim</button>
+      <a class="btn secundario" href="painel.html">Voltar ao painel</a>
+    </section>
+
+    <section class="card">
+      <h1>Relatório de ocorrência: furto de colmeia</h1>
+      <p class="msg">Dados registrados automaticamente pelo rastreador Bee Guard nº <b id="r-serie"></b>.
+        Gerado em <span id="r-gerado"></span>.</p>
+    </section>
+
+    <section class="card">
+      <h2>1. Proprietário</h2>
+      <label>Nome completo<input id="r-nome" autocomplete="name"></label>
+      <label>CPF<input id="r-doc" inputmode="numeric"></label>
+      <div class="grid">
+        <div><span>Telefone</span><b id="r-tel"></b></div>
+        <div><span>E-mail</span><b id="r-email"></b></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Bem furtado</h2>
+      <div class="grid">
+        <div><span>Colmeia</span><b id="r-caixa"></b></div>
+        <div><span>Nº de série do rastreador</span><b id="r-serie2"></b></div>
+        <div><span>Apiário</span><b id="r-apiario"></b></div>
+        <div><span>Município</span><b id="r-municipio"></b></div>
+      </div>
+      <p id="r-balanca" hidden></p>
+      <label>Quantidade de caixas levadas<input id="r-qtd" inputmode="numeric"></label>
+      <label>Valor estimado do prejuízo (R$)<input id="r-valor" inputmode="decimal"></label>
+      <label>Outras informações (vestígios, testemunhas, veículo visto)<textarea id="r-obs" rows="3"></textarea></label>
+    </section>
+
+    <section class="card">
+      <h2>3. Linha do tempo</h2>
+      <ul id="r-tempo"></ul>
+    </section>
+
+    <section class="card">
+      <h2>4. Localização</h2>
+      <div class="grid">
+        <div><span>Onde a colmeia estava</span><b id="r-origem"></b></div>
+        <div><span>Última posição registrada</span><b id="r-ultima"></b></div>
+        <div><span>Distância do apiário</span><b id="r-dist"></b></div>
+        <div><span>Posições registradas</span><b id="r-npos"></b></div>
+      </div>
+      <div id="map"></div>
+      <p class="msg">Linha vermelha: trajeto registrado pelo rastreador. Círculo verde: apiário. Marcador: última posição.</p>
+    </section>
+
+    <section class="card">
+      <h2>5. Posições registradas</h2>
+      <table class="posicoes">
+        <thead><tr><th>Data e hora</th><th>Latitude, longitude</th><th>Distância do apiário</th></tr></thead>
+        <tbody id="r-pos"></tbody>
+      </table>
+      <p class="msg" id="r-pos-nota"></p>
+    </section>
+
+    <section class="card">
+      <p class="msg">As posições são registradas automaticamente pelo rastreador (GPS) e guardadas no servidor do
+        Bee Guard no momento em que chegam. O fabricante pode confirmar estes dados à autoridade policial, mediante
+        solicitação.</p>
+      <p>Assinatura do proprietário: _______________________________________</p>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="module">
+import { $, show, sb, ensureLogin, errorText, esc, fmtDate } from "./app.js";
+import { formDados, fmtCpf, fmtReais, estadoDoTelefone } from "./dados.js";
+
+const serie = new URLSearchParams(location.search).get("d") || "";
+
+const STATUS = {
+  pendente: "aguardando resposta do proprietário",
+  escalado: "possível roubo (ninguém confirmou manutenção)",
+  roubo_confirmado: "roubo confirmado pelo proprietário",
+  manutencao: "proprietário confirmou que era manutenção",
+  encerrado: "alerta encerrado",
+};
+
+function distM(a, b) {
+  const r = 6371000, rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * r * Math.asin(Math.sqrt(h));
+}
+const fmtDist = (m) => m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
+const coord = (p) => `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`;
+
+let valorEditado = false;
+
+// Campos que vêm de "Meus dados" e do alerta; o apicultor confere e corrige antes de gerar o PDF.
+function preencher(r) {
+  const ap = r.apicultor;
+  if (ap.nome) $("#r-nome").value = ap.nome;
+  if (ap.cpf) $("#r-doc").value = fmtCpf(ap.cpf);
+  if (!$("#r-qtd").value) $("#r-qtd").value = String(r.caixas_movidas || 1);
+  const calcular = () => {
+    const q = Number($("#r-qtd").value.replace(/\D/g, ""));
+    if (!valorEditado && ap.valor_colmeia && q) $("#r-valor").value = fmtReais(q * Number(ap.valor_colmeia));
+  };
+  $("#r-qtd").oninput = calcular;
+  $("#r-valor").oninput = () => { valorEditado = true; };
+  calcular();
+}
+
+// Sem "Meus dados": oferece preencher ali mesmo (ou gerar em branco e completar à mão).
+function ofertaDados(r) {
+  const el = $("#dados-card");
+  if (r.apicultor.nome || r.apicultor.cpf || r.apicultor.valor_colmeia) return show(el, false);
+  formDados(el, {
+    perfil: {}, titulo: "Preencha agora (leva 30 segundos)",
+    texto: "Ou gere o boletim em branco e complete à mão. Se salvar, nas próximas vezes ele já sai preenchido.",
+    aoSalvar: (p) => {
+      Object.assign(r.apicultor, { nome: p.nome, cpf: p.cpf, valor_colmeia: p.valor_colmeia });
+      preencher(r);
+      el.innerHTML = "<p>✓ Dados salvos e colocados no boletim. Confira abaixo.</p>";
+    },
+  });
+  show(el);
+}
+
+function acoes(r, origem, ultima) {
+  show("#ligar-190", !!r.em_movimento);
+  if (r.em_movimento && ultima) {
+    $("#mapa-vivo").href = `https://www.google.com/maps?q=${ultima.lat},${ultima.lon}`;
+    show("#mapa-vivo");
+  }
+  const estado = estadoDoTelefone(r.apicultor.telefone);
+  $("#bo-online").href = "https://www.google.com/search?q=" +
+    encodeURIComponent(`delegacia online Polícia Civil ${estado || ""} boletim de ocorrência furto`.replace(/\s+/g, " "));
+  // Google Maps buscando delegacias perto de onde o apicultor está (ou do apiário, sem GPS).
+  $("#delegacias").onclick = () => {
+    const abrir = (lat, lon) => window.open(lat == null
+      ? "https://www.google.com/maps/search/delegacia+de+pol%C3%ADcia"
+      : `https://www.google.com/maps/search/delegacia+de+pol%C3%ADcia/@${lat},${lon},13z`, "_blank", "noopener");
+    const reserva = () => abrir(origem?.lat ?? null, origem?.lon ?? null);
+    if (!navigator.geolocation) return reserva();
+    navigator.geolocation.getCurrentPosition((p) => abrir(p.coords.latitude, p.coords.longitude), reserva,
+      { timeout: 8000, maximumAge: 300000 });
+  };
+}
+
+function render(r) {
+  show("#login", false);
+  show("#relatorio");
+  const t = r.trajeto, origem = r.origem, ultima = t.length ? t[t.length - 1] : null;
+  $("#r-serie").textContent = $("#r-serie2").textContent = r.caixa.serie;
+  $("#r-gerado").textContent = fmtDate(r.gerado_em);
+  preencher(r);
+  $("#r-tel").textContent = r.apicultor.telefone || "—";
+  $("#r-email").textContent = r.apicultor.email || "—";
+  $("#r-caixa").textContent = r.caixa.nome;
+  $("#r-apiario").textContent = r.apiario.nome || "—";
+  $("#r-municipio").textContent = r.apiario.municipio || "—";
+  if (r.balanca && r.balanca.antes !== null) {
+    $("#r-balanca").textContent = `Peso da colmeia antes do furto (balança): ${Number(r.balanca.antes).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg.`;
+    show("#r-balanca");
+  }
+
+  const a = r.alerta, tempo = [`${fmtDate(a.aberto_em)}: rastreador detectou que a colmeia foi movida.`];
+  if (a.escalado_em) tempo.push(`${fmtDate(a.escalado_em)}: ninguém confirmou manutenção; rastreamento intensivo ativado.`);
+  if (t.length) tempo.push(`${fmtDate(t[0].em)}: primeira posição registrada depois do alerta.`);
+  if (ultima) tempo.push(`${fmtDate(ultima.em)}: última posição registrada.`);
+  if (a.encerrado_em) tempo.push(`${fmtDate(a.encerrado_em)}: alerta encerrado${a.resolucao ? ` (${a.resolucao})` : ""}.`);
+  tempo.push(`Situação atual: ${STATUS[a.status] || a.status}.`);
+  $("#r-tempo").innerHTML = tempo.map((x) => `<li>${esc(x)}</li>`).join("");
+
+  $("#r-origem").textContent = origem ? `${coord(origem)} (${origem.fonte})` : "—";
+  $("#r-ultima").textContent = ultima ? `${coord(ultima)}, ${fmtDate(ultima.em)}` : "nenhuma posição depois do alerta";
+  $("#r-dist").textContent = origem && ultima ? fmtDist(distM(origem, ultima)) : "—";
+  $("#r-npos").textContent = String(t.length);
+  ofertaDados(r);
+  acoes(r, origem, ultima);
+
+  // Tabela: até 60 linhas (a primeira, a última e as do meio espaçadas igualmente).
+  const max = 60;
+  const linhas = t.length <= max ? t : Array.from({ length: max }, (_, i) => t[Math.round(i * (t.length - 1) / (max - 1))]);
+  $("#r-pos").innerHTML = linhas.map((p) => `<tr><td>${esc(fmtDate(p.em))}</td><td>${coord(p)}</td>
+    <td>${origem ? esc(fmtDist(distM(origem, p))) : "—"}</td></tr>`).join("");
+  $("#r-pos-nota").textContent = t.length > max
+    ? `Mostrando ${max} de ${t.length} posições, espaçadas ao longo do trajeto. O mapa mostra todas.` : "";
+
+  const pts = t.map((p) => [p.lat, p.lon]);
+  if (!window.L || (!pts.length && !origem)) return show("#map", false);
+  const map = L.map("map");
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+  const camada = L.featureGroup().addTo(map);
+  if (origem) L.circleMarker([origem.lat, origem.lon], { radius: 9, color: "#2e7d32", fillOpacity: .6 }).addTo(camada);
+  if (pts.length) {
+    L.polyline(pts, { color: "#c62828", weight: 4 }).addTo(camada);
+    L.marker(pts[pts.length - 1]).addTo(camada);
+  }
+  map.fitBounds(camada.getBounds().pad(0.2), { maxZoom: 16 });
+}
+
+$("#imprimir").onclick = () => window.print();
+
+ensureLogin($("#login"), async () => {
+  $("#login").innerHTML = `<p class="msg">Montando o relatório…</p>`;
+  const { data, error } = await sb.rpc("colmeia_theft_report", { p_device_id: serie });
+  if (error) {
+    show("#login", false);
+    $("#erro").textContent = errorText(error);
+    return show("#erro");
+  }
+  render(data);
+});
+</script>
+</body>
+</html>

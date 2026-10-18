@@ -1,4 +1,4 @@
-{"versao": "0.7.1", "placa": "t-sim7080g-s3-std", "chip": "ESP32-S3", "commit": "60671d6",
+{"versao": "0.7.1", "placa": "t-sim7080g-s3-std", "chip": "ESP32-S3", "commit": "28aeb9b",
  "arquivos": [{"arquivo": "bootloader.bin", "endereco": 0},
               {"arquivo": "partitions.bin", "endereco": 32768},
               {"arquivo": "boot_app0.bin", "endereco": 57344},

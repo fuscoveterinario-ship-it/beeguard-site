@@ -105,6 +105,13 @@ label.check input { width: auto; margin: 0; }
 
 /* Nome da caixa e do apiário sobre cada marcador do mapa */
 .leaflet-tooltip.rotulo-mapa { font-size: 12px; line-height: 1.25; padding: 3px 7px; text-align: center; }
+.leaflet-tooltip.rotulo-mapa.fogo-urgente { color: #fff; background: var(--alerta); border-color: var(--alerta); }
+.leaflet-tooltip.rotulo-mapa.fogo-atencao { color: #1d1d1d; background: #ffb74d; border-color: #ffb74d; }
+.fogo { border-left: 5px solid var(--aviso); background: color-mix(in srgb, var(--aviso) 12%, transparent); border-radius: 8px; padding: 8px 12px; margin: 0 0 10px; line-height: 1.4; }
+.fogo-urgente { border-left-color: var(--alerta); background: color-mix(in srgb, var(--alerta) 14%, transparent); }
+.fogo.resolvido { opacity: 0.65; }
+.fogo small { display: block; color: var(--muted, #666); }
+.fogo button { margin-top: 6px; }
 .leaflet-tooltip.rotulo-mapa hr { border: 0; border-top: 1px solid #ddd; margin: 3px 0; }
 .lembrete { margin: 4px 0 0; }
 #atencao-tit { margin: 18px 4px 6px; }
@@ -113,3 +120,19 @@ label.check input { width: auto; margin: 0; }
 .abas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
 .abas .aba { margin: 0; padding: 22px 10px; font-size: 19px; background: var(--card, #fff); color: var(--ink); border: 2px solid var(--line); text-align: center; }
 .abas .aba.ativo { background: var(--mel); border-color: var(--mel); color: #221a08; }
+/* Boletim de ocorrência (ocorrencia.html): campos, tabela de posições e versão para imprimir. */
+textarea { display: block; width: 100%; margin-top: 6px; padding: 12px; font: inherit; font-size: 17px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); }
+table.posicoes { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.posicoes th, table.posicoes td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+@media print {
+  .sem-impressao { display: none !important; }
+  body.relatorio { background: #fff; color: #000; }
+  body.relatorio .card { border: 0; padding: 0 0 8px; break-inside: avoid; background: #fff; color: #000; }
+  body.relatorio input, body.relatorio textarea { border: 0; border-bottom: 1px solid #999; border-radius: 0;
+    padding: 4px 0; background: #fff; color: #000; resize: none; }
+  body.relatorio #map { height: 420px; }
+  body.relatorio table.posicoes { break-inside: auto; }
+}
+.btn.perigo { background: var(--alerta); color: #fff; }
+.alerta-190 { border: 2px solid var(--alerta); }

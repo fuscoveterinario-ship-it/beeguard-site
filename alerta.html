@@ -35,6 +35,7 @@
       <button class="perigo" data-acao="roubo">Possível roubo</button>
     </div>
     <p class="msg" id="acao-msg"></p>
+    <a class="btn secundario" id="bo" hidden>Boletim de ocorrência (PDF, com login do dono)</a>
   </section>
 
   <section class="card" id="mapa-card" hidden>
@@ -55,7 +56,7 @@ let map, line, marker;
 const TEXTOS = {
   pendente: ["A caixa foi movimentada", "Foi você fazendo manutenção? Se ninguém responder em 5 minutos, o contato secundário é avisado e o rastreamento intensivo começa."],
   escalado: ["POSSÍVEL ROUBO", "Ninguém confirmou em 5 minutos. O rastreador está enviando a posição com frequência."],
-  roubo_confirmado: ["ROUBO CONFIRMADO", "O rastreador está enviando a posição com frequência. Acompanhe no mapa."],
+  roubo_confirmado: ["ROUBO CONFIRMADO", "O rastreador está enviando a posição com frequência. Acompanhe no mapa. Para encerrar o alerta, entre no painel do Bee Guard."],
   manutencao: ["Manutenção confirmada", "Alerta encerrado. Novos movimentos nas próximas 2 horas não geram alerta."],
   encerrado: ["Alerta encerrado", ""],
 };
@@ -95,9 +96,12 @@ function render({ alert, device, track, balanca }) {
     show("#a-balanca");
   }
 
-  const podeResponder = alert.kind === "movimento" && ["pendente", "escalado", "roubo_confirmado"].includes(alert.status);
+  // Roubo confirmado só se encerra no painel (com login): o link da mensagem passa a só mostrar o mapa.
+  const podeResponder = alert.kind === "movimento" && ["pendente", "escalado"].includes(alert.status);
   show("#acoes", podeResponder);
-  document.querySelector('[data-acao="roubo"]').hidden = alert.status === "roubo_confirmado";
+  // Possível roubo: o dono gera o relatório para a delegacia (a página pede login).
+  $("#bo").href = `ocorrencia.html?d=${encodeURIComponent(device.id)}`;
+  show("#bo", alert.kind === "movimento" && ["escalado", "roubo_confirmado"].includes(alert.status));
 
   const pts = track.map((p) => [p.lat, p.lon]);
   if (!pts.length && device.lat) pts.push([device.lat, device.lon]);
