@@ -1,5 +1,5 @@
 // Bee Guard no celular: funciona como app (ícone na tela inicial) e recebe as notificações de alerta.
-const CACHE = "beeguard-v2";
+const CACHE = "beeguard-v3";
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
@@ -9,7 +9,10 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   const url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== location.origin || (url.search && !/^\?v=\d+$/.test(url.search))) return;
-  e.respondWith(fetch(req).then((res) => {
+  // cache: "no-cache" = sempre confere no site se há versão nova (rápido: só baixa o que mudou).
+  // (a abertura da página não aceita opções, por isso vira um pedido novo só com o endereço)
+  const pedido = req.mode === "navigate" ? new Request(req.url, { cache: "no-cache" }) : new Request(req, { cache: "no-cache" });
+  e.respondWith(fetch(pedido).then((res) => {
     if (res.ok) { const copia = res.clone(); caches.open(CACHE).then((c) => c.put(req, copia)); }
     return res;
   }).catch(async () => (await caches.match(req)) || new Response(

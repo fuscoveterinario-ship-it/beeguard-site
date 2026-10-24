@@ -1,7 +1,7 @@
 // "Agilize seu boletim de ocorrência": dados opcionais (nome, CPF, valor da colmeia) usados só
 // para o boletim de ocorrência sair preenchido em caso de roubo. Usado no painel, em
 // meus-dados.html e no próprio boletim.
-import { sb, esc, errorText } from "./app.js?v=2026102403";
+import { sb, esc, errorText } from "./app.js?v=2026102404";
 
 export const somenteNumeros = (s) => String(s || "").replace(/\D/g, "");
 

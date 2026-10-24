@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus rastreadores</title>
-<link rel="stylesheet" href="style.css?v=2026102403">
+<link rel="stylesheet" href="style.css?v=2026102404">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -52,9 +52,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, ago, fmtDate, batteryPct, mapsLink, errorText, esc, montarApp } from "./app.js?v=2026102403";
-import { balanca, producao, statusDe, fmtKg } from "./render.js?v=2026102403";
-import { formDados } from "./dados.js?v=2026102403";
+import { $, show, sb, ensureLogin, ago, fmtDate, batteryPct, mapsLink, errorText, esc, montarApp } from "./app.js?v=2026102404";
+import { balanca, producao, statusDe, fmtKg } from "./render.js?v=2026102404";
+import { formDados } from "./dados.js?v=2026102404";
 
 let map, layer;
 const abertos = new Set();  // balanças com os ajustes abertos (sobrevive à atualização automática)
@@ -88,7 +88,29 @@ function situacaoApiario(ds, alertas) {
 const tituloFogo = (f) => (f.level === "urgente" ? "URGENTE" : "ATENÇÃO");
 const distFogo = (f) => f.distance_m >= 1000 ? `${(f.distance_m / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(f.distance_m)} m`;
 
-async function carregar() {
+// Se algo der errado, mostra na tela (em vez de deixar o Início em branco) com um botão para recarregar.
+function carregar() {
+  return carregarAgora().catch((e) => {
+    show("#lista");
+    $("#lista").innerHTML = `<div class="card erro"><p>Não deu para mostrar o painel (${esc(e?.message || e)}).</p>
+      <button type="button" onclick="location.reload()">Recarregar</button></div>`;
+  });
+}
+
+// O mapa vem de fora (Leaflet). Se não chegou, tenta de novo por outro endereço e redesenha.
+let leafletPedido = false;
+function carregarLeaflet() {
+  if (leafletPedido) return;
+  leafletPedido = true;
+  const css = document.createElement("link");
+  css.rel = "stylesheet"; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  const js = document.createElement("script");
+  js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  js.onload = () => carregar();
+  document.head.append(css, js);
+}
+
+async function carregarAgora() {
   // Não atualiza enquanto o apicultor está digitando nos ajustes.
   if (document.activeElement?.closest?.("#lista, #producao") && ["INPUT", "SELECT"].includes(document.activeElement.tagName)) return;
   const desde = new Date(Date.now() - 14 * 86400000).toISOString();
@@ -363,6 +385,7 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
 
   const pts = devs.filter((d) => d.last_lat);
   show("#mapa-card", view === "inicio" && pts.length > 0);
+  if (view === "inicio" && pts.length && !window.L) carregarLeaflet();
   if (view === "inicio" && pts.length && window.L) {
     show("#mapa-card");
     if (!map) {

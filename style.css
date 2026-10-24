@@ -204,7 +204,7 @@ details.caixa .nome small { display: block; font-size: 13px; font-weight: 400; c
 /* Computador e tablet: no Início o mapa ocupa a tela toda; o resto continua na coluna do meio. */
 @media (min-width: 768px) {
   body[data-view="inicio"] main { max-width: none; padding-inline: 24px; }
-  body[data-view="inicio"] main > :not(#mapa-card) { max-width: 640px; margin-inline: auto; }
+  body[data-view="inicio"] main > :not(#mapa-card, #titulo) { max-width: 640px; margin-inline: auto; }
   body[data-view="inicio"] #mapa-card { margin-bottom: 0; }
-  body[data-view="inicio"] #map { height: calc(100vh - 380px); height: calc(100dvh - 380px); min-height: 420px; }
+  body[data-view="inicio"] #map { height: calc(100vh - 340px); height: calc(100dvh - 340px); min-height: 420px; }
 }
