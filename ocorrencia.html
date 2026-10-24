@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boletim de ocorrência</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261024">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -106,8 +106,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, errorText, esc, fmtDate } from "./app.js";
-import { formDados, fmtCpf, fmtReais, estadoDoTelefone } from "./dados.js";
+import { $, show, sb, ensureLogin, errorText, esc, fmtDate } from "./app.js?v=20261024";
+import { formDados, fmtCpf, fmtReais, estadoDoTelefone } from "./dados.js?v=20261024";
 
 const serie = new URLSearchParams(location.search).get("d") || "";
 

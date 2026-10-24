@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Alerta da colmeia</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261024">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -48,7 +48,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ago, batteryPct, errorText, mapsLink } from "./app.js";
+import { $, show, sb, ago, batteryPct, errorText, mapsLink } from "./app.js?v=20261024";
 
 const token = new URLSearchParams(location.search).get("t") || "";
 let map, line, marker;

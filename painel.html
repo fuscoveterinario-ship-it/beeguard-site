@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus rastreadores</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261024">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -44,17 +44,17 @@
   <section id="producao" hidden></section>
 </main>
 <nav class="tabbar" id="tabbar" hidden aria-label="Navegação">
-  <a href="#" data-tab="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z M9 3v15 M15 6v15"></path></svg>Início</a>
-  <a href="#apiarios/lista" data-tab="apiarios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"></path></svg>Apiários</a>
-  <a href="#alertas" data-tab="alertas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9 M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>Alertas<span class="badge" id="badge" hidden></span></a>
-  <a href="#mais" data-tab="mais"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M4 12h16 M4 18h16"></path></svg>Mais</a>
+  <a href="#" data-tab="inicio"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z M9 3v15 M15 6v15"></path></svg>Início</a>
+  <a href="#apiarios/lista" data-tab="apiarios"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"></path></svg>Apiários</a>
+  <a href="#alertas" data-tab="alertas"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9 M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>Alertas<span class="badge" id="badge" hidden></span></a>
+  <a href="#mais" data-tab="mais"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 6h16 M4 12h16 M4 18h16"></path></svg>Mais</a>
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, ago, fmtDate, batteryPct, mapsLink, errorText, esc, montarApp } from "./app.js";
-import { balanca, producao, statusDe, fmtKg } from "./render.js";
-import { formDados } from "./dados.js";
+import { $, show, sb, ensureLogin, ago, fmtDate, batteryPct, mapsLink, errorText, esc, montarApp } from "./app.js?v=20261024";
+import { balanca, producao, statusDe, fmtKg } from "./render.js?v=20261024";
+import { formDados } from "./dados.js?v=20261024";
 
 let map, layer;
 const abertos = new Set();  // balanças com os ajustes abertos (sobrevive à atualização automática)

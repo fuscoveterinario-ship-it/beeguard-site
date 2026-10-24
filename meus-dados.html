@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus dados</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261024">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -21,8 +21,8 @@
   <a class="btn secundario" href="painel.html">Voltar ao painel</a>
 </main>
 <script type="module">
-import { $, show, sb, ensureLogin } from "./app.js";
-import { formDados } from "./dados.js";
+import { $, show, sb, ensureLogin } from "./app.js?v=20261024";
+import { formDados } from "./dados.js?v=20261024";
 
 function desenhar(perfil, salvo = false) {
   formDados($("#dados"), {

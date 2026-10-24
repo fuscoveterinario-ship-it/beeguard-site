@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus apiários</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261024">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -36,7 +36,7 @@
 </main>
 
 <script type="module">
-import { $, show, sb, ensureLogin, normalizePhone, errorText, esc } from "./app.js";
+import { $, show, sb, ensureLogin, normalizePhone, errorText, esc } from "./app.js?v=20261024";
 
 const fmtTel = (t) => {
   const d = String(t || "").replace(/\D/g, "").replace(/^55/, "");

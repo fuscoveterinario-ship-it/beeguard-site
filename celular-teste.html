@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Celular como rastreador de teste</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261024">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -66,8 +66,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js";
-import { INGEST_URL } from "./config.js";
+import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js?v=20261024";
+import { INGEST_URL } from "./config.js?v=20261024";
 
 const store = {
   get: (k, d = "") => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
