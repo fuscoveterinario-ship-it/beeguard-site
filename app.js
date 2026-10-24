@@ -1,7 +1,7 @@
 // Funções compartilhadas pelas telas.
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config.js?v=2026102406";
-import { aoMudar, ehIphone, instalado, instalar, passoAPasso, podeInstalar } from "./instalar.js?v=2026102406";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config.js?v=2026102407";
+import { aoMudar, ehIphone, instalado, instalar, passoAPasso, podeInstalar } from "./instalar.js?v=2026102407";
 
 export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

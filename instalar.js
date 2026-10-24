@@ -52,9 +52,11 @@ export function passoAPasso() {
       <li>Toque nos <b>3 pontinhos</b> (canto de cima, à direita).</li>
       <li>Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li></ol>`;
   }
-  return `<p class="ajuda">No computador, use o <b>Chrome</b> ou o <b>Edge</b>: clique no ícone de instalar
-    na barra de endereço (ou no menu ⋮ → <b>Instalar Bee Guard</b>). No celular fica ainda melhor:
-    abra <b>beeguard.com.br</b> e toque em <b>Baixar o app</b>.</p>`;
+  return `<p class="ajuda">Se na barra de endereço aparece <b>Abrir no app</b>, o Bee Guard <b>já está instalado</b>
+    neste computador: clique ali (ou no ícone do Bee Guard no menu Iniciar).<br>
+    Se ainda não está: no <b>Chrome</b> ou no <b>Edge</b>, clique no ícone de instalar na barra de endereço
+    (ou no menu ⋮ → <b>Instalar Bee Guard</b>). O app não vai para a pasta Downloads: ele vira um ícone
+    no menu Iniciar e na área de trabalho.</p>`;
 }
 
 // Liga um botão + uma área de ajuda: instala direto quando dá, senão mostra o passo a passo.

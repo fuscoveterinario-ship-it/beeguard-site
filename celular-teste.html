@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Celular como rastreador de teste</title>
-<link rel="stylesheet" href="style.css?v=2026102406">
+<link rel="stylesheet" href="style.css?v=2026102407">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -66,8 +66,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js?v=2026102406";
-import { INGEST_URL } from "./config.js?v=2026102406";
+import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js?v=2026102407";
+import { INGEST_URL } from "./config.js?v=2026102407";
 
 const store = {
   get: (k, d = "") => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
@@ -289,6 +289,6 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 </script>
-<script type="module" src="nav.js?v=2026102406"></script>
+<script type="module" src="nav.js?v=2026102407"></script>
 </body>
 </html>
