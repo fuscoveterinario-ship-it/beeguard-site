@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Celular como rastreador de teste</title>
-<link rel="stylesheet" href="style.css?v=20261024">
+<link rel="stylesheet" href="style.css?v=2026102402">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -57,7 +57,7 @@
       <p><b>Teste encerrado.</b> O rastreador de teste desliga sozinho depois de 20 minutos para não gastar SMS.
         Para testar de novo, toque em <b>Parar</b> e inicie outra vez.</p>
     </div>
-    <button class="secundario" id="b-mexer">Simular movimento agora</button>
+    <button id="b-mexer">Simular movimento agora</button>
     <button class="secundario" id="b-parar">Parar</button>
     <h2>Registro</h2>
     <ol id="log" class="passos" reversed></ol>
@@ -66,8 +66,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js?v=20261024";
-import { INGEST_URL } from "./config.js?v=20261024";
+import { $, show, sb, ensureLogin, normalizePhone, errorText } from "./app.js?v=2026102402";
+import { INGEST_URL } from "./config.js?v=2026102402";
 
 const store = {
   get: (k, d = "") => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
@@ -114,14 +114,16 @@ async function send(type) {
       body,
     });
     const cfg = await res.json();
-    if (!res.ok) { log(`${type}: recusado (${cfg.error || res.status})`); return; }
+    if (!res.ok) { log(`${type}: recusado (${cfg.error || res.status})`); return false; }
     state.mode = cfg.mode;
     state.alertOpen = !!cfg.al;
     $("#p-modo").textContent = cfg.mode === "roubo" ? "ROUBO (posição a cada 1 min)" : "normal";
     $("#p-resp").textContent = new Date().toLocaleTimeString("pt-BR");
     log(`${type} enviado${cfg.al ? " — alerta aberto" : ""}`);
+    return true;
   } catch (e) {
     log(`${type}: sem internet (${e.message})`);
+    return false;
   }
 }
 
@@ -156,8 +158,9 @@ async function motionDetected() {
   cooldownUntil = Date.now() + 60_000;
   $("#p-estado").textContent = "MOVIMENTO!";
   if (navigator.vibrate) navigator.vibrate(300);
-  await send("movimento");
+  const ok = await send("movimento");
   state.watchUntil = Date.now() + 15 * 60_000;
+  return ok;
 }
 
 // A cada minuto: se há alerta aberto ou modo roubo, manda a posição.
@@ -257,7 +260,16 @@ $("#f-tel").onsubmit = async (ev) => {
   start(data.id, data.secret);
 };
 ensureLogin($("#login"), () => { show("#login", false); show("#config"); });
-$("#b-mexer").onclick = () => motionDetected();
+// O botão mostra o que está acontecendo e fica travado enquanto envia, para não abrir vários alertas.
+$("#b-mexer").onclick = async (ev) => {
+  const b = ev.currentTarget;
+  b.disabled = true; b.textContent = "Enviando…";
+  const ok = await motionDetected();
+  b.disabled = false;
+  b.classList.add(ok ? "ok" : "perigo");
+  b.textContent = ok ? "Movimento enviado ✓ — confira o alerta" : "Não foi enviado — veja o registro";
+  setTimeout(() => { b.classList.remove("ok", "perigo"); b.textContent = "Simular movimento agora"; }, 4000);
+};
 $("#b-parar").onclick = () => location.reload();
 
 function encerrarTeste() {
