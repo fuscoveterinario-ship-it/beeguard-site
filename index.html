@@ -148,6 +148,10 @@ section.bloco { padding-top: 56px; padding-bottom: 56px; }
 .depo-tag { position: absolute; top: -12px; right: 18px; background: var(--noite); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
 .lista-rec li { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 18px; box-shadow: var(--sombra); font-size: 17px; line-height: 1.25; }
 .lista-rec svg { width: 28px; height: 28px; flex: none; color: var(--mel-dark); }
+.lista-rec li { align-items: flex-start; }
+.lista-rec li > div { display: grid; gap: 6px; }
+.lista-rec li span { font-size: 15px; line-height: 1.4; color: var(--muted, #6b6253); }
+.lista-rec li:first-child span { color: rgba(255,255,255,.78); }
 .lista-rec li:first-child { background: var(--noite); color: #fff; }
 .lista-rec li:first-child svg { color: var(--mel); }
 .contato { text-align: center; justify-items: center; }
@@ -208,11 +212,11 @@ section.bloco { padding-top: 56px; padding-bottom: 56px; }
     <h2 id="recursos" class="sr">O que ele faz</h2>
     <ul class="lista-rec">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 3.2-1.2 4.8-2 5.6h16c-.8-.8-2-2.4-2-5.6a6 6 0 0 0-6-6Z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></svg>
-        <b>Alerta na hora</b></li>
+        <div><b>Alerta na hora</b><span>Mexeram na caixa? Você recebe notificação e SMS no celular em segundos, até de madrugada.</span></div></li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg>
-        <b>Localização no mapa</b></li>
+        <div><b>Localização no mapa</b><span>Se levarem a caixa, o GPS mostra no mapa onde ela está e o caminho que fez.</span></div></li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14l-2-11H7Z"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0"/></svg>
-        <b>Peso e produção de mel</b></li>
+        <div><b>Peso e produção de mel</b><span>A balança pesa a caixa todo dia: você sabe a hora certa de colher e é avisado se tirarem mel.</span></div></li>
     </ul>
     <figure class="depo">
       <img class="depo-foto" src="henrique-depoimento.jpg" alt="Henrique Kutz olhando as colmeias do Apiário Kutz no meio da mata" width="720" height="900" loading="lazy">
