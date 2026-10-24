@@ -1,6 +1,6 @@
 // Desenho das partes do painel, usado pelo painel do apicultor (painel.html) e pela
 // página de visualização compartilhada (ver.html, sem login, localização só aproximada).
-import { ago, esc, fmtDate } from "./app.js?v=2026102405";
+import { ago, esc, fmtDate } from "./app.js?v=2026102406";
 
 export const kg = (v) => v === null || v === undefined ? "—" : `${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`;
 

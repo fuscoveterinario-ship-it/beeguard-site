@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Apiário Bee Guard</title>
-<link rel="stylesheet" href="style.css?v=2026102405">
+<link rel="stylesheet" href="style.css?v=2026102406">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <meta name="theme-color" content="#111111">
@@ -25,8 +25,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ago, fmtDate, batteryPct, mapsLink, errorText, esc } from "./app.js?v=2026102405";
-import { balanca, producao, statusDe } from "./render.js?v=2026102405";
+import { $, show, sb, ago, fmtDate, batteryPct, mapsLink, errorText, esc } from "./app.js?v=2026102406";
+import { balanca, producao, statusDe } from "./render.js?v=2026102406";
 
 let map, camada, enquadrado = false;
 const token = new URLSearchParams(location.search).get("t") || "";
@@ -150,6 +150,6 @@ if (!token) {
   setInterval(carregar, 60000);
 }
 </script>
-<script type="module" src="nav.js?v=2026102405"></script>
+<script type="module" src="nav.js?v=2026102406"></script>
 </body>
 </html>

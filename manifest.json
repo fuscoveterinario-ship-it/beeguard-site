@@ -17,10 +17,16 @@
       "purpose": "any"
     },
     {
-      "src": "icone.png",
+      "src": "icone-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://beeguard.com.br/manifest.json"
     }
   ]
 }

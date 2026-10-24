@@ -15,6 +15,21 @@ export const ehIphone = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 export const instalado = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 export const podeInstalar = () => !!pedido;
+
+// O Chrome só libera a instalação alguns segundos depois de abrir o site: espera até 4 s.
+function esperarPedido(ms = 4000) {
+  if (pedido) return Promise.resolve(true);
+  return new Promise((ok) => {
+    const f = () => { if (pedido) { ouvintes.delete(f); ok(true); } };
+    ouvintes.add(f);
+    setTimeout(() => { ouvintes.delete(f); ok(!!pedido); }, ms);
+  });
+}
+
+// Já instalado neste aparelho? (o Chrome não oferece instalar de novo)
+export async function jaInstalado() {
+  try { return (await navigator.getInstalledRelatedApps?.())?.length > 0; } catch { return false; }
+}
 export const aoMudar = (f) => ouvintes.add(f);
 
 export async function instalar() {
@@ -54,6 +69,11 @@ export function ligarBotao(botao, ajuda) {
     }
     botao.textContent = rotulo;
     botao.onclick = async () => {
+      if (!podeInstalar()) {
+        botao.disabled = true; botao.textContent = "Preparando o download…";
+        await esperarPedido();
+        botao.disabled = false; botao.textContent = rotulo;
+      }
       if (podeInstalar()) {
         if (await instalar()) {
           ajuda.innerHTML = `<p class="status ok">✓ App instalado! Procure o ícone do Bee Guard na tela do celular.</p>`;
@@ -61,10 +81,15 @@ export function ligarBotao(botao, ajuda) {
         }
         return;
       }
-      ajuda.innerHTML = passoAPasso();
+      ajuda.innerHTML = await jaInstalado()
+        ? `<p class="status">✓ O app Bee Guard já está instalado neste aparelho. Abra pelo ícone do Bee Guard
+            (na tela do celular ou no menu Iniciar do computador) ou <a href="painel.html">entre por aqui</a>.</p>`
+        : passoAPasso();
       ajuda.hidden = false;
     };
   };
   aoMudar(desenhar);
   desenhar();
+  // Se já está instalado, o botão vira "Abrir o app".
+  jaInstalado().then((sim) => { if (sim && !instalado()) { botao.textContent = "Abrir o app Bee Guard"; botao.onclick = () => { location.href = "painel.html"; }; } });
 }
