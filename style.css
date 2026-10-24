@@ -208,3 +208,10 @@ details.caixa .nome small { display: block; font-size: 13px; font-weight: 400; c
   body[data-view="inicio"] #mapa-card { margin-bottom: 0; }
   body[data-view="inicio"] #map { height: calc(100vh - 340px); height: calc(100dvh - 340px); min-height: 420px; }
 }
+
+/* Botão Voltar no topo das páginas internas (as abas de baixo vêm do nav.js). */
+header:has(.voltar) { display: flex; align-items: center; gap: 6px; }
+header .voltar { display: flex; align-items: center; gap: 2px; min-height: 44px; padding: 6px 12px 6px 4px; margin-left: -6px;
+  border-radius: 99px; color: #fff; text-decoration: none; font-size: 16px; font-weight: 600; flex: none; }
+header .voltar:active, header .voltar:hover { background: rgba(255,255,255,.12); }
+header .voltar svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }

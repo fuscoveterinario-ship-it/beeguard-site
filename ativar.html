@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ativar rastreador</title>
-<link rel="stylesheet" href="style.css?v=2026102404">
+<link rel="stylesheet" href="style.css?v=2026102405">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Bee Guard">
 <meta name="theme-color" content="#111111">
 </head>
-<body>
+<body data-aba="mais">
 <header><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Ativação do rastreador</small></span></a></header>
 <main>
   <section class="card" id="login"><p class="msg">Carregando… (precisa de internet)</p></section>
@@ -119,7 +119,7 @@
 </main>
 
 <script type="module">
-import { $, show, sb, normalizePhone, ensureLogin, errorText, batteryPct, ago, mapsLink, esc } from "./app.js?v=2026102404";
+import { $, show, sb, normalizePhone, ensureLogin, errorText, batteryPct, ago, mapsLink, esc } from "./app.js?v=2026102405";
 
 const params = new URLSearchParams(location.search);
 let deviceId = (params.get("d") || "").toUpperCase();
@@ -349,5 +349,6 @@ $("#bal-certo").onclick = () => { zeroEm = -1; show("#passo-balanca", false); sh
 $("#bal-refazer").onclick = () => { zeroEm = -1; balErro(); show("#bal-c", false); show("#bal-b", false); show("#bal-a"); };
 $("#bal-pular").onclick = () => { zeroEm = -1; show("#passo-balanca", false); show("#passo-pronto"); };
 </script>
+<script type="module" src="nav.js?v=2026102405"></script>
 </body>
 </html>

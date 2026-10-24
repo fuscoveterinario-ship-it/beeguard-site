@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boletim de ocorrência</title>
-<link rel="stylesheet" href="style.css?v=2026102404">
+<link rel="stylesheet" href="style.css?v=2026102405">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#111111">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 </head>
-<body class="relatorio">
+<body class="relatorio" data-aba="alertas">
 <header class="sem-impressao"><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Boletim de ocorrência</small></span></a></header>
 <main>
   <section class="card" id="login"><p class="msg">Carregando… (precisa de internet)</p></section>
@@ -106,8 +106,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, errorText, esc, fmtDate } from "./app.js?v=2026102404";
-import { formDados, fmtCpf, fmtReais, estadoDoTelefone } from "./dados.js?v=2026102404";
+import { $, show, sb, ensureLogin, errorText, esc, fmtDate } from "./app.js?v=2026102405";
+import { formDados, fmtCpf, fmtReais, estadoDoTelefone } from "./dados.js?v=2026102405";
 
 const serie = new URLSearchParams(location.search).get("d") || "";
 
@@ -252,5 +252,6 @@ ensureLogin($("#login"), async () => {
   render(data);
 });
 </script>
+<script type="module" src="nav.js?v=2026102405"></script>
 </body>
 </html>

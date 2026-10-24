@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus apiários</title>
-<link rel="stylesheet" href="style.css?v=2026102404">
+<link rel="stylesheet" href="style.css?v=2026102405">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Bee Guard">
 <meta name="theme-color" content="#111111">
 </head>
-<body>
+<body data-aba="apiarios">
 <header><a class="marca" href="index.html"><img src="icone.png" alt="" width="40" height="40"><span>BEEGUARD<small>Meus apiários e colmeias</small></span></a></header>
 <main>
   <section class="card" id="login"><p class="msg">Carregando… (precisa de internet)</p></section>
@@ -36,7 +36,7 @@
 </main>
 
 <script type="module">
-import { $, show, sb, ensureLogin, normalizePhone, errorText, esc } from "./app.js?v=2026102404";
+import { $, show, sb, ensureLogin, normalizePhone, errorText, esc } from "./app.js?v=2026102405";
 
 const fmtTel = (t) => {
   const d = String(t || "").replace(/\D/g, "").replace(/^55/, "");
@@ -168,5 +168,6 @@ ensureLogin($("#login"), () => {
   carregar();
 });
 </script>
+<script type="module" src="nav.js?v=2026102405"></script>
 </body>
 </html>
