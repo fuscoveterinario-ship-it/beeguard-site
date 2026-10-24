@@ -145,20 +145,49 @@ section.bloco { padding-top: 56px; padding-bottom: 56px; }
 .depo blockquote { margin: 0; font-size: 21px; line-height: 1.45; font-weight: 500; text-wrap: pretty; }
 .depo figcaption { margin-top: 14px; color: var(--muted); font-size: 16px; }
 .depo figcaption b { color: var(--ink); }
+/* Carrossel no lugar da foto: depoimento + um slide por recurso. Passa sozinho, arrasta com o dedo. */
+.carrossel { position: relative; overflow: hidden; background: var(--noite); }
+.trilho { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; }
+.trilho::-webkit-scrollbar { display: none; }
+.slide { position: relative; flex: 0 0 100%; height: 100%; scroll-snap-align: start; overflow: hidden; }
+.slide > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.legenda { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 48px 16px 34px; color: #fff; font-size: 14px; line-height: 1.4;
+  background: linear-gradient(transparent, rgba(10,8,4,.92) 45%); }
+.legenda b { display: block; font-size: 17px; color: var(--mel); margin-bottom: 4px; }
+.pontos { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 4px; }
+.pontos button { all: unset; width: 24px; height: 24px; display: grid; place-items: center; cursor: pointer; }
+.pontos button::after { content: ""; width: 8px; height: 8px; border-radius: 99px; background: rgba(255,255,255,.5); transition: width .25s, background-color .25s; }
+.pontos button[aria-selected="true"]::after { width: 22px; background: var(--mel); }
+.pontos button:focus-visible { outline: 2px solid var(--mel); border-radius: 99px; }
+.s-alerta { background: linear-gradient(#1f2638, #0e1119); color: #fff; }
+.s-hora { text-align: center; font-size: 52px; font-weight: 300; margin-top: 30px; font-variant-numeric: tabular-nums; }
+.s-notif { display: flex; gap: 10px; margin: 14px 12px 0; background: rgba(250,246,236,.96); color: #1b160c; border-radius: 16px; padding: 10px; font-size: 13px; line-height: 1.3; }
+.s-notif img { border-radius: 8px; flex: none; }
+.s-notif small { display: block; color: #6f6453; font-size: 11px; font-weight: 600; letter-spacing: .03em; }
+.s-notif b { display: block; font-size: 14px; }
+.s-mapa svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.s-peso { background: var(--creme); color: var(--ink); padding: 24px 18px 0; }
+.s-peso-topo small { display: block; color: var(--muted); font-size: 13px; font-weight: 600; }
+.s-peso-topo b { display: block; font-size: 46px; line-height: 1.1; color: var(--ink); }
+.s-peso-topo span { color: var(--muted); font-size: 14px; }
+.s-peso svg { width: 100%; margin-top: 18px; }
+.s-selo { display: inline-block; margin-top: 10px; background: var(--ok); color: #fff; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 99px; }
+@media (prefers-reduced-motion: reduce) { .trilho { scroll-behavior: auto; } }
 .depo-tag { position: absolute; top: -12px; right: 18px; background: var(--noite); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
 .lista-rec li { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 18px; box-shadow: var(--sombra); font-size: 17px; line-height: 1.25; }
 .lista-rec svg { width: 28px; height: 28px; flex: none; color: var(--mel-dark); }
-.lista-rec li { align-items: flex-start; }
-.lista-rec li > div { display: grid; gap: 6px; }
-.lista-rec li span { font-size: 15px; line-height: 1.4; color: var(--muted, #6b6253); }
-.lista-rec li:first-child span { color: rgba(255,255,255,.78); }
-.lista-rec li:first-child { background: var(--noite); color: #fff; }
-.lista-rec li:first-child svg { color: var(--mel); }
+.lista-rec li { padding: 0; }
+.lista-rec button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 12px; width: 100%; height: 100%; padding: 18px; border-radius: 16px; cursor: pointer; }
+.lista-rec button:focus-visible { outline: 3px solid var(--mel); outline-offset: 3px; }
+.lista-rec li:has(.ativo) { background: var(--noite); color: #fff; }
+.lista-rec li:has(.ativo) svg { color: var(--mel); }
+.lista-rec li { transition: background-color .3s, color .3s; }
 .contato { text-align: center; justify-items: center; }
 .rodape-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 @media (min-width: 860px) {
   .lista-rec { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .lista-rec li { padding: 22px 24px; font-size: 19px; }
+  .lista-rec li { font-size: 19px; }
+  .lista-rec button { padding: 22px 24px; }
   .hero { grid-template-columns: 1.1fr .9fr; padding-top: 40px; padding-bottom: 90px; }
   .recursos { grid-template-columns: repeat(6, 1fr); }
   .rec { grid-column: span 2; }
@@ -210,16 +239,54 @@ section.bloco { padding-top: 56px; padding-bottom: 56px; }
 <main id="conteudo">
   <section class="wrap bloco" aria-labelledby="recursos">
     <h2 id="recursos" class="sr">O que ele faz</h2>
-    <ul class="lista-rec">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 3.2-1.2 4.8-2 5.6h16c-.8-.8-2-2.4-2-5.6a6 6 0 0 0-6-6Z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></svg>
-        <div><b>Alerta na hora</b><span>Mexeram na caixa? Você recebe notificação e SMS no celular em segundos, até de madrugada.</span></div></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg>
-        <div><b>Localização no mapa</b><span>Se levarem a caixa, o GPS mostra no mapa onde ela está e o caminho que fez.</span></div></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14l-2-11H7Z"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0"/></svg>
-        <div><b>Peso e produção de mel</b><span>A balança pesa a caixa todo dia: você sabe a hora certa de colher e é avisado se tirarem mel.</span></div></li>
+    <ul class="lista-rec" id="rec-lista">
+      <li><button type="button" data-slide="1" aria-controls="carrossel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 3.2-1.2 4.8-2 5.6h16c-.8-.8-2-2.4-2-5.6a6 6 0 0 0-6-6Z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></svg>
+        <b>Alerta na hora</b></button></li>
+      <li><button type="button" data-slide="2" aria-controls="carrossel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg>
+        <b>Localização no mapa</b></button></li>
+      <li><button type="button" data-slide="3" aria-controls="carrossel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14l-2-11H7Z"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0"/></svg>
+        <b>Peso e produção de mel</b></button></li>
     </ul>
     <figure class="depo">
-      <img class="depo-foto" src="henrique-depoimento.jpg" alt="Henrique Kutz olhando as colmeias do Apiário Kutz no meio da mata" width="720" height="900" loading="lazy">
+      <div class="depo-foto carrossel" id="carrossel" role="region" aria-roledescription="carrossel" aria-label="Como o Bee Guard funciona">
+        <div class="trilho" tabindex="0">
+          <div class="slide" aria-label="1 de 4"><img src="henrique-depoimento.jpg" alt="Henrique Kutz olhando as colmeias do Apiário Kutz no meio da mata" width="720" height="900" loading="lazy"></div>
+          <div class="slide s-alerta" aria-label="2 de 4">
+            <div class="s-hora">03:12</div>
+            <div class="s-notif"><img src="icone.png" alt="" width="34" height="34"><div><small>BEE GUARD · agora</small><b>Caixa 07 foi mexida</b><span>Toque para ver no mapa</span></div></div>
+            <p class="legenda"><b>Alerta na hora</b>Mexeram na caixa de madrugada? Seu celular toca na hora, com notificação e SMS. Você age antes de o ladrão ir longe.</p>
+          </div>
+          <div class="slide s-mapa" aria-label="3 de 4">
+            <svg viewBox="0 0 300 375" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="300" height="375" fill="#eef1e6"/>
+              <path d="M-10 70 C 80 40 150 120 310 60 L310 0 L-10 0Z" fill="#cfe3b8"/>
+              <path d="M-10 300 C 60 260 120 330 200 290 S 300 300 310 280 L310 375 L-10 375Z" fill="#cfe3b8"/>
+              <path d="M210 -10 C 190 80 250 140 230 220 S 260 330 250 385" fill="none" stroke="#a9cfe8" stroke-width="10"/>
+              <g fill="none" stroke="#fff" stroke-linecap="round"><path d="M-10 160 L310 130" stroke-width="12"/><path d="M90 -10 L120 385" stroke-width="9"/><path d="M-10 250 L310 215" stroke-width="7"/></g>
+              <g fill="none" stroke="#f3d58a" stroke-linecap="round"><path d="M-10 160 L310 130" stroke-width="4"/></g>
+              <path d="M55 205 C 75 175 95 150 115 140 S 170 120 210 80" fill="none" stroke="#c62828" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round"/>
+              <g transform="translate(55 205)"><path d="M0 -13 L11 -6.5 L11 6.5 L0 13 L-11 6.5 L-11 -6.5Z" fill="#f5c400" stroke="#16130d" stroke-width="2"/></g>
+              <g transform="translate(210 80)"><circle r="26" fill="#c62828" opacity=".15"/><path d="M0 0 C -12 -14 -14 -20 -14 -26 A14 14 0 0 1 14 -26 C 14 -20 12 -14 0 0Z" fill="#c62828"/><circle cy="-26" r="5" fill="#fff"/></g>
+              <g font-family="inherit" font-size="11" font-weight="700"><rect x="160" y="22" width="98" height="22" rx="11" fill="#16130d"/><text x="209" y="37" fill="#fff" text-anchor="middle">Caixa 07 · agora</text>
+              <text x="70" y="229" fill="#16130d">Apiário</text></g>
+            </svg>
+            <p class="legenda"><b>Localização no mapa</b>Levaram a caixa? O GPS mostra onde ela está e o caminho que fez. Você vai direto buscar, ou leva a polícia junto.</p>
+          </div>
+          <div class="slide s-peso" aria-label="4 de 4">
+            <div class="s-peso-topo"><small>Caixa 3 · balança</small><b>+12,4 kg</b><span>de mel desde a melgueira</span></div>
+            <svg viewBox="0 0 260 120" aria-hidden="true">
+              <path d="M0 105 L30 100 L60 92 L90 85 L120 70 L150 60 L180 44 L210 34 L240 22 L260 18" fill="none" stroke="#f5c400" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 105 L30 100 L60 92 L90 85 L120 70 L150 60 L180 44 L210 34 L240 22 L260 18 L260 120 L0 120Z" fill="#f5c400" opacity=".18"/>
+              <circle cx="260" cy="18" r="7" fill="#f5c400" stroke="#16130d" stroke-width="3"/>
+            </svg>
+            <div class="s-selo">Pronta para colher</div>
+            <p class="legenda"><b>Peso e produção de mel</b>Saiba quanto mel tem em cada caixa sem abrir. Colha na hora certa e seja avisado se tirarem mel.</p>
+          </div>
+        </div>
+        <div class="pontos" role="tablist" aria-label="Escolher imagem">
+          <button type="button" role="tab" aria-label="Depoimento"></button><button type="button" role="tab" aria-label="Alerta na hora"></button><button type="button" role="tab" aria-label="Localização no mapa"></button><button type="button" role="tab" aria-label="Peso e produção de mel"></button>
+        </div>
+      </div>
       <blockquote>“Roubo de caixa é o pesadelo de todo apicultor. Hoje as minhas colmeias têm o <span translate="no">Bee Guard</span>: se alguém mexer, o celular avisa na hora e eu vejo no mapa onde a caixa está. Durmo bem mais tranquilo.”</blockquote>
       <figcaption><b>Henrique Kutz</b> · Apiário Kutz, Ortigueira (PR)</figcaption>
     </figure>
@@ -242,6 +309,37 @@ section.bloco { padding-top: 56px; padding-bottom: 56px; }
 <script type="module">
 import { ligarBotao } from "./instalar.js?v=2026102405";
 ligarBotao(document.getElementById("baixar-app"), document.getElementById("baixar-passos"));
+
+// Carrossel do depoimento: passa sozinho a cada 5 s, para quando a pessoa mexe e anda com os quadros de cima.
+const carrossel = document.getElementById("carrossel");
+const trilho = carrossel.querySelector(".trilho");
+const pontos = [...document.querySelectorAll("#carrossel .pontos button")];
+const quadros = [...document.querySelectorAll("#rec-lista button")];
+const total = pontos.length;
+let atual = 0, parado = false, timer;
+const ir = (i) => trilho.scrollTo({ left: i * trilho.clientWidth });
+function marcar(i) {
+  atual = i;
+  pontos.forEach((p, k) => p.setAttribute("aria-selected", k === i));
+  quadros.forEach((q) => q.classList.toggle("ativo", Number(q.dataset.slide) === i));
+}
+trilho.addEventListener("scroll", () => {
+  const i = Math.round(trilho.scrollLeft / trilho.clientWidth);
+  if (i !== atual) marcar(i);
+}, { passive: true });
+pontos.forEach((p, k) => p.onclick = () => { parado = true; ir(k); });
+quadros.forEach((q) => q.onclick = () => {
+  parado = true;
+  const i = Number(q.dataset.slide), r = carrossel.getBoundingClientRect();
+  // Se o carrossel não está todo na tela, rola a página primeiro e só depois troca a imagem.
+  if (r.top < 0 || r.bottom > innerHeight) { carrossel.scrollIntoView({ block: "nearest" }); setTimeout(() => ir(i), 500); } else ir(i);
+});
+for (const ev of ["pointerdown", "focusin", "mouseenter"]) carrossel.addEventListener(ev, () => { parado = true; });
+carrossel.addEventListener("mouseleave", () => { parado = false; });
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  timer = setInterval(() => { if (!parado && !document.hidden) ir((atual + 1) % total); }, 5000);
+}
+marcar(0);
 </script>
 </body>
 </html>
