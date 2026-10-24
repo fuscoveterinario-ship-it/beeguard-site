@@ -123,6 +123,7 @@ export function balanca(d, pts, { abertos = new Set(), readonly = false } = {}) 
         <h4>Colheita e alimento</h4>
         <label>Avisar a colheita quando ganhar (kg)<input type="number" min="1" max="100" step="0.5" value="${esc(d.harvest_gain_kg)}" data-ganho="${id}"></label>
         <label>Avisar falta de alimento abaixo de (kg, opcional)<input type="number" min="1" max="200" step="0.5" value="${esc(d.hunger_kg ?? "")}" data-fome="${id}"></label>
+        <label>Avisar possível furto de mel se, depois de mexerem na caixa, o peso cair (kg; 0 desliga)<input type="number" min="0" max="50" step="0.5" value="${esc(d.honey_drop_kg ?? 2)}" data-mel="${id}"></label>
         <button class="secundario" data-salvar="${id}">Salvar</button>
         <button data-melgueira="${id}">Coloquei a melgueira agora</button>
         <p class="msg">Depois de colocar a melgueira, o peso de referência é a próxima pesagem (até 3 horas).</p>
@@ -134,6 +135,7 @@ export function statusDe(d, alertas) {
   const aberto = alertas.find((a) => a.device_id === d.id && ["pendente", "escalado", "roubo_confirmado"].includes(a.status));
   if (d.mode === "roubo") return ['alerta', "RASTREAMENTO INTENSIVO"];
   if (aberto?.kind === "movimento") return ["alerta", "movimento — aguardando resposta"];
+  if (aberto?.kind === "furto_mel") return ["alerta", "possível furto de mel — aguardando resposta"];
   if (aberto?.kind === "offline") return ["aviso", "sem comunicação"];
   if (d.maintenance_until && new Date(d.maintenance_until) > new Date()) return ["aviso", `manutenção até ${fmtDate(d.maintenance_until)}`];
   return ["ok", "protegida"];

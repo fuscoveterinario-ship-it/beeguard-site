@@ -136,3 +136,65 @@ table.posicoes th, table.posicoes td { text-align: left; padding: 6px 4px; borde
 }
 .btn.perigo { background: var(--alerta); color: #fff; }
 .alerta-190 { border: 2px solid var(--alerta); }
+
+/* Painel no estilo dos apps do celular: abas embaixo, título grande, listas agrupadas e botões em cápsula. */
+button, .btn { border-radius: 99px; min-height: 44px; }
+button.mini { min-height: 32px; }
+.titulo-grande { font-size: 34px; font-weight: 700; letter-spacing: -0.01em; margin: 4px 4px 14px; }
+body:has(#tabbar:not([hidden])) main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--card); border-top: 1px solid var(--line);
+  padding: 6px max(4px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px)); }
+.tabbar a { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px;
+  justify-content: center; font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.tabbar a.ativo { color: var(--mel-dark); }
+.tabbar svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar .badge { position: absolute; top: 2px; left: 54%; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px;
+  background: var(--alerta); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.lista-grupo { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 0 0 16px; }
+.lista-grupo > a, .lista-grupo > button { display: flex; align-items: center; width: 100%; min-height: 50px; margin: 0; padding: 0 16px;
+  border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink);
+  font-size: 17px; font-weight: 400; text-align: left; text-decoration: none; }
+.lista-grupo > :first-child { border-top: 0; }
+.lista-grupo > a::after, .lista-grupo > button:not(.sair)::after { content: "›"; margin-left: auto; color: var(--muted); font-size: 22px; }
+.lista-grupo .sair { color: var(--alerta); }
+.card-alerta { border: 2px solid var(--alerta); }
+.grupo-topo { display: flex; align-items: flex-start; gap: 8px; }
+.grupo-topo h2 { flex: 1; min-width: 0; }
+.menu-acoes { position: relative; flex: none; }
+.menu-acoes summary { list-style: none; cursor: pointer; min-width: 44px; min-height: 44px; display: flex; align-items: center;
+  justify-content: center; border-radius: 99px; font-size: 22px; font-weight: 800; color: var(--mel-dark); }
+.menu-acoes summary::-webkit-details-marker { display: none; }
+.menu-acoes[open] summary { background: color-mix(in srgb, var(--mel) 20%, transparent); }
+.menu-lista { position: absolute; right: 0; top: 48px; z-index: 900; width: min(300px, 80vw); background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); overflow: hidden; }
+.menu-lista button, .menu-lista a { display: block; width: 100%; margin: 0; min-height: 48px; padding: 12px 16px; border: 0;
+  border-top: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); font-size: 16px;
+  font-weight: 500; text-align: left; text-decoration: none; }
+.menu-lista > :first-child { border-top: 0; }
+.lista-caixas { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+details.caixa + details.caixa { border-top: 1px solid var(--line); }
+details.caixa > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 14px; }
+details.caixa > summary::-webkit-details-marker { display: none; }
+details.caixa > summary::after { content: "›"; color: var(--muted); font-size: 22px; transition: transform .2s; }
+details.caixa[open] > summary::after { transform: rotate(90deg); }
+details.caixa .nome { flex: 1; min-width: 0; font-size: 17px; font-weight: 600; }
+details.caixa .nome small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); }
+.caixa-corpo { padding: 4px 14px 14px; }
+.acoes-leves { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.acoes-leves > * { flex: 1 1 200px; margin: 0; font-size: 15px; padding: 10px 14px; }
+.lista-alertas { list-style: none; margin: 0 0 16px; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.lista-alertas li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-top: 1px solid var(--line); }
+.lista-alertas li:first-child { border-top: 0; }
+.lista-alertas li.aberto { background: color-mix(in srgb, var(--alerta) 6%, var(--card)); }
+.lista-alertas li > div { flex: 1; min-width: 0; }
+.lista-alertas small { display: block; color: var(--muted); font-size: 14px; }
+.lista-alertas time { flex: none; color: var(--muted); font-size: 13px; }
+.lista-alertas .mini { margin-top: 6px; }
+.ponto { flex: none; width: 10px; height: 10px; border-radius: 99px; margin-top: 7px; background: var(--muted); }
+.ponto.alerta { background: var(--alerta); } .ponto.aviso { background: var(--aviso); } .ponto.ok { background: var(--ok); }
+@media (prefers-reduced-motion: reduce) { details.caixa > summary::after { transition: none; } }
+/* Produtividade / Apiários: controle segmentado compacto */
+.abas { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 0 16px; padding: 3px; background: color-mix(in srgb, var(--line) 70%, transparent); border-radius: 12px; }
+.abas .aba { margin: 0; padding: 8px 10px; min-height: 36px; font-size: 15px; border: 0; border-radius: 9px; background: transparent; color: var(--ink); }
+.abas .aba.ativo { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }

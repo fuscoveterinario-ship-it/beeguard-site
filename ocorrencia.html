@@ -40,7 +40,7 @@
     </section>
 
     <section class="card">
-      <h1>Relatório de ocorrência: furto de colmeia</h1>
+      <h1 id="r-titulo">Relatório de ocorrência: furto de colmeia</h1>
       <p class="msg">Dados registrados automaticamente pelo rastreador Bee Guard nº <b id="r-serie"></b>.
         Gerado em <span id="r-gerado"></span>.</p>
     </section>
@@ -199,7 +199,11 @@ function render(r) {
     show("#r-balanca");
   }
 
-  const a = r.alerta, tempo = [`${fmtDate(a.aberto_em)}: rastreador detectou que a colmeia foi movida.`];
+  const a = r.alerta, mel = a.tipo === "furto_mel";
+  if (mel) $("#r-titulo").textContent = "Relatório de ocorrência: furto de mel";
+  const tempo = [`${fmtDate(a.aberto_em)}: ${mel
+    ? "a balança da colmeia registrou queda de peso logo depois de mexerem na caixa (retirada de mel)."
+    : "rastreador detectou que a colmeia foi movida."}`];
   if (a.escalado_em) tempo.push(`${fmtDate(a.escalado_em)}: ninguém confirmou manutenção; rastreamento intensivo ativado.`);
   if (t.length) tempo.push(`${fmtDate(t[0].em)}: primeira posição registrada depois do alerta.`);
   if (ultima) tempo.push(`${fmtDate(ultima.em)}: última posição registrada.`);
