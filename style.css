@@ -200,3 +200,11 @@ details.caixa .nome small { display: block; font-size: 13px; font-weight: 400; c
 .abas { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 0 16px; padding: 3px; background: color-mix(in srgb, var(--line) 70%, transparent); border-radius: 12px; }
 .abas .aba { margin: 0; padding: 8px 10px; min-height: 36px; font-size: 15px; border: 0; border-radius: 9px; background: transparent; color: var(--ink); }
 .abas .aba.ativo { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+
+/* Computador e tablet: no Início o mapa ocupa a tela toda; o resto continua na coluna do meio. */
+@media (min-width: 768px) {
+  body[data-view="inicio"] main { max-width: none; padding-inline: 24px; }
+  body[data-view="inicio"] main > :not(#mapa-card) { max-width: 640px; margin-inline: auto; }
+  body[data-view="inicio"] #mapa-card { margin-bottom: 0; }
+  body[data-view="inicio"] #map { height: calc(100vh - 380px); height: calc(100dvh - 380px); min-height: 420px; }
+}

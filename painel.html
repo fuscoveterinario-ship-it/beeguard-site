@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meus rastreadores</title>
-<link rel="stylesheet" href="style.css?v=2026102402">
+<link rel="stylesheet" href="style.css?v=2026102403">
 <link rel="icon" href="icone.png">
 <link rel="apple-touch-icon" href="icone.png">
 <link rel="manifest" href="manifest.json">
@@ -52,9 +52,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
-import { $, show, sb, ensureLogin, ago, fmtDate, batteryPct, mapsLink, errorText, esc, montarApp } from "./app.js?v=2026102402";
-import { balanca, producao, statusDe, fmtKg } from "./render.js?v=2026102402";
-import { formDados } from "./dados.js?v=2026102402";
+import { $, show, sb, ensureLogin, ago, fmtDate, batteryPct, mapsLink, errorText, esc, montarApp } from "./app.js?v=2026102403";
+import { balanca, producao, statusDe, fmtKg } from "./render.js?v=2026102403";
+import { formDados } from "./dados.js?v=2026102403";
 
 let map, layer;
 const abertos = new Set();  // balanças com os ajustes abertos (sobrevive à atualização automática)
@@ -195,6 +195,7 @@ document.querySelectorAll("[data-ver]").forEach((b) => b.classList.toggle("ativo
   });
   $("#titulo").textContent = { inicio: "Início", apiarios: "Apiários", alertas: "Alertas", mais: "Mais" }[view];
   show("#titulo"); show("#tabbar");
+  document.body.dataset.view = view;  // no computador e no tablet o mapa do Início ocupa a tela toda
   show("#mais-lista", view === "mais"); show("#alertas-lista", view === "alertas"); show("#inicio-extra", view === "inicio");
   show("#app-card", view === "mais");
   const teste = (d) => d.id.startsWith("TESTE-");
